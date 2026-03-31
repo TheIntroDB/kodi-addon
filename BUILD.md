@@ -2,33 +2,32 @@
 
 ## Turn on github.io (one-time)
 
-The short download URL **`https://jzonethegit.github.io/Smart-Intro-Skip/`** is served from this repo’s **`docs/`** folder via **GitHub Pages**.
+The site **`https://jzonethegit.github.io/Smart-Intro-Skip/`** is served from **`docs/`** via **GitHub Pages**.
 
 1. GitHub repo → **Settings** → **Pages**
-2. **Build and deployment** → **Source**: *Deploy from a branch*
-3. **Branch**: `main` → **Folder**: `/docs` → **Save**
-4. After a minute, the site should load. If you see 404, wait for the Pages build to finish (check the **Actions** tab).
+2. **Source**: *Deploy from a branch* → **Branch**: `main` → **Folder**: `/docs` → **Save**
+3. Wait for the build; check **Actions** if it 404s at first.
 
-Published files live in **`docs/`**: `addons.xml`, `addons.xml.md5`, both zips, `index.html`, `.nojekyll`.
+**Layout:** `addons.xml` and checksums stay in **`docs/`** root (what Kodi’s repo uses). **Zip downloads** for humans and for **Install from zip** live in **`docs/zips/`** only, so Kodi’s file browser doesn’t show `addons.xml` / `index.html` next to the archives.
 
-The repository addon (`repository.smartintro.jz`) points Kodi at the **github.io** URLs in `repository.smartintro.jz/addon.xml`.
+The repository addon uses **`.../zips/`** for `datadir` so Kodi pulls **`plugin.video.introskip-X.Y.Z.zip`** from there (filename must match id + version).
 
 ## Release checklist
 
 1. Bump **`version`** in **`plugin.video.introskip/addon.xml`**
 2. Copy the `<addon>...</addon>` block into **`docs/addons.xml`**
-3. `cd` to project root, then:
+3. From project root:
    ```bash
-   rm -f docs/plugin.video.introskip-*.zip
-   zip -r docs/plugin.video.introskip-X.Y.Z.zip plugin.video.introskip
+   rm -f docs/zips/plugin.video.introskip-*.zip
+   zip -r docs/zips/plugin.video.introskip-X.Y.Z.zip plugin.video.introskip
    md5 -q docs/addons.xml > docs/addons.xml.md5
    ```
-4. If **`repository.smartintro.jz/addon.xml`** changed, rebuild **`docs/repository.smartintro.jz-1.0.0.zip`**:
+4. If **`repository.smartintro.jz/addon.xml`** changed, rebuild the **named** repository installer:
    ```bash
-   rm -f docs/repository.smartintro.jz-*.zip
-   zip -r docs/repository.smartintro.jz-1.0.0.zip repository.smartintro.jz
+   rm -f docs/zips/01-install-this-first-repository.smartintro.jz-*.zip
+   zip -r docs/zips/01-install-this-first-repository.smartintro.jz-1.0.0.zip repository.smartintro.jz
    ```
-5. Update **`docs/index.html`** zip names/versions if needed
+5. Update **`docs/index.html`** if zip names or versions changed
 6. Commit and push **`main`**
 
-Repo must stay **public** for Pages and for Kodi clients to fetch files.
+Repo must stay **public** for Pages and for Kodi to fetch files.

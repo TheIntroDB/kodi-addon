@@ -24,21 +24,24 @@ So it works with **Seren, Fen, Umbrella, or your local library** as long as the 
 
 ## Installation
 
-**Easy link (downloads + short URL):**  
-**[https://jzonethegit.github.io/Smart-Intro-Skip/](https://jzonethegit.github.io/Smart-Intro-Skip/)**
+**Download page:** [https://jzonethegit.github.io/Smart-Intro-Skip/](https://jzonethegit.github.io/Smart-Intro-Skip/)
 
-Open that page on your phone or PC, download a zip, copy it to your Kodi device (USB, share, etc.), then use **Settings → Add-ons → Install from zip file**.
+**If you add this site in Kodi as a file source** (so you can pick a zip without copying files), use this URL — it only lists the two zips, nothing else:
 
-### Repo route (recommended — get updates in Kodi)
+`https://jzonethegit.github.io/Smart-Intro-Skip/zips/`
 
-1. Download **`repository.smartintro.jz-1.0.0.zip`** from the link above (or the [GitHub repo](https://github.com/JZOnTheGit/Smart-Intro-Skip) → **`docs`** folder).
-2. **Settings → Add-ons → Install from zip file** → choose that zip.
-3. **Settings → Add-ons → Install from repository** → **Smart Intro Skip repo** → **Services** → **Smart Intro Skip** → **Install**.
+Then **Install from zip** → open that source → install **`01-install-this-first-…`** first (recommended), or **`plugin.video.introskip-1.0.1.zip`** for the addon only.
+
+You can also open the download page on a phone or PC, grab a zip, and copy it to your device (USB, share, etc.).
+
+### Repo route (recommended — updates in Kodi)
+
+1. **Settings → Add-ons → Install from zip file** → install **`01-install-this-first-repository.smartintro.jz-1.0.0.zip`** (from the **`zips`** link above, or copy the file over).
+2. **Settings → Add-ons → Install from repository** → **Smart Intro Skip repo** → **Services** → **Smart Intro Skip** → **Install**.
 
 ### Direct zip (addon only, no repository)
 
-1. Download **`plugin.video.introskip-1.0.1.zip`** from the same download page.
-2. **Settings → Add-ons → Install from zip file**
+1. **Settings → Add-ons → Install from zip file** → **`plugin.video.introskip-1.0.1.zip`** from the **`zips`** folder.
 
 ## Settings
 
