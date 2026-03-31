@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addon id="repository.smartintro.jz"
        name="Smart Intro Skip repo"
-       version="1.0.0"
+       version="1.0.1"
        provider-name="JZOnTheGit">
     <extension point="xbmc.addon.repository" name="Smart Intro Skip repo">
-        <info compressed="false">https://jzonethegit.github.io/Smart-Intro-Skip/addons.xml</info>
-        <checksum>https://jzonethegit.github.io/Smart-Intro-Skip/addons.xml.md5</checksum>
-        <datadir zip="true">https://jzonethegit.github.io/Smart-Intro-Skip/zips/</datadir>
+        <info compressed="false">https://raw.githubusercontent.com/JZOnTheGit/Smart-Intro-Skip/main/docs/addons.xml</info>
+        <checksum>https://raw.githubusercontent.com/JZOnTheGit/Smart-Intro-Skip/main/docs/addons.xml.md5</checksum>
+        <datadir zip="true">https://raw.githubusercontent.com/JZOnTheGit/Smart-Intro-Skip/main/docs/zips/</datadir>
     </extension>
     <extension point="xbmc.addon.metadata">
         <summary lang="en_GB">Source for Smart Intro Skip (GitHub)</summary>

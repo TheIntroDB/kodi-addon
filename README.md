@@ -30,13 +30,16 @@ So it works with **Seren, Fen, Umbrella, or your local library** as long as the 
 
 `https://jzonethegit.github.io/Smart-Intro-Skip/zips/`
 
-**Install from zip** → open that source → pick **`01-install-this-first-…`** first (recommended), or **`plugin.video.introskip-1.0.1.zip`** for addon-only.
+**Install from zip** → open that source → pick **`01-install-this-first-…1.0.1.zip`** first (recommended), or **`plugin.video.introskip-1.0.1.zip`** for addon-only.
 
-You can also open the download page on a phone or PC, grab a zip, and copy it to your device (USB, share, etc.).
+If **github.io** still 404s in a browser, download the zips from GitHub instead (same files):  
+[repository installer](https://github.com/JZOnTheGit/Smart-Intro-Skip/raw/main/docs/zips/01-install-this-first-repository.smartintro.jz-1.0.1.zip) · [addon only](https://github.com/JZOnTheGit/Smart-Intro-Skip/raw/main/docs/zips/plugin.video.introskip-1.0.1.zip)
+
+The repository addon loads **`addons.xml`** from **`raw.githubusercontent.com`** (not github.io), so **Install from repository** works even when Pages is not deployed.
 
 ### Repo route (recommended — updates in Kodi)
 
-1. **Settings → Add-ons → Install from zip file** → install **`01-install-this-first-repository.smartintro.jz-1.0.0.zip`** (from the **`zips`** link above, or copy the file over).
+1. **Settings → Add-ons → Install from zip file** → install **`01-install-this-first-repository.smartintro.jz-1.0.1.zip`** (from the **`zips`** link above, or the raw link). If you already installed **`1.0.0`**, install **`1.0.1`** over it (or remove the old repo add-on, then install the new zip).
 2. **Settings → Add-ons → Install from repository** → **Smart Intro Skip repo** → **Services** → **Smart Intro Skip** → **Install**.
 
 ### Direct zip (addon only, no repository)

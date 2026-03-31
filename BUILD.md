@@ -25,7 +25,7 @@ The repository addon uses **`.../zips/`** for `datadir` so Kodi pulls **`plugin.
 4. If **`repository.smartintro.jz/addon.xml`** changed, rebuild the **named** repository installer:
    ```bash
    rm -f docs/zips/01-install-this-first-repository.smartintro.jz-*.zip
-   zip -r docs/zips/01-install-this-first-repository.smartintro.jz-1.0.0.zip repository.smartintro.jz
+   zip -r docs/zips/01-install-this-first-repository.smartintro.jz-1.0.1.zip repository.smartintro.jz
    ```
 5. Update **`docs/index.html`** and **`docs/zips/index.html`** if zip names or versions changed
 6. Commit and push **`main`**
