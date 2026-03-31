@@ -30,9 +30,11 @@ The repository addon uses **`.../zips/`** for `datadir`. Kodi’s default packag
 4. If **`repository.smartintro.jz/addon.xml`** changed, rebuild the **named** repository installer:
    ```bash
    rm -f docs/zips/01-install-this-first-repository.smartintro.jz-*.zip
-   zip -r docs/zips/01-install-this-first-repository.smartintro.jz-1.0.4.zip repository.smartintro.jz
+   zip -r docs/zips/01-install-this-first-repository.smartintro.jz-1.0.5.zip repository.smartintro.jz
    ```
 5. Update **`docs/index.html`** and **`docs/zips/index.html`** if zip names or versions changed
 6. Commit and push **`main`**
 
 Repo must stay **public** for Pages and for Kodi to fetch files.
+
+**Updates:** Users must set Kodi to **Update official add-ons from → Any repositories** (not “official only”), or third-party add-ons never auto-update. Bumping **`repository.smartintro.jz`**’s **`version`** and shipping a new **`01-install-this-first-…zip`** clears cached repo checksums for clients who get stuck.

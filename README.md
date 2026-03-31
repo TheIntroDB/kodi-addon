@@ -34,13 +34,13 @@ So it works with **Seren, Fen, Umbrella, or your local library** as long as the 
 
 `https://jzonthegit.github.io/Smart-Intro-Skip/zips/`
 
-**Install from zip** → open that source → install **`01-install-this-first-repository.smartintro.jz-1.0.4.zip`** first (recommended), or **`plugin.video.introskip-1.0.1.zip`** for addon-only.
+**Install from zip** → open that source → install **`01-install-this-first-repository.smartintro.jz-1.0.5.zip`** first (recommended), or **`plugin.video.introskip-1.0.2.zip`** for addon-only.
 
 You can also use the download page on a phone or PC, grab a zip, and copy it to your device (USB, share, etc.).
 
 ### Repo route (recommended — updates in Kodi)
 
-1. **Settings → Add-ons → Install from zip file** → **`01-install-this-first-repository.smartintro.jz-1.0.4.zip`**
+1. **Settings → Add-ons → Install from zip file** → **`01-install-this-first-repository.smartintro.jz-1.0.5.zip`**
 2. **Settings → Add-ons → Install from repository** → **Smart Intro Skip repo** → **Services** → **Smart Intro Skip** → **Install**.
 
 ### Direct zip (addon only, no repository)
@@ -49,7 +49,15 @@ You can also use the download page on a phone or PC, grab a zip, and copy it to 
 
 ### Updates (installed from this repo)
 
-Kodi refreshes the repository on a timer. When **`addons.xml`** on the site lists a **newer `version`** than the one you have, the add-on shows an **Update** entry (e.g. under **My add-ons → Services → Smart Intro Skip**, or run **Check for updates** on **Smart Intro Skip repo**). Release notes appear from the **`news`** field in the add-on metadata when you view the update.
+Kodi only pulls updates from third-party repos if **system add-on settings** allow it:
+
+1. Open **Settings** (cog) → **System** → **Add-ons** (or **Settings → Add-ons** on some skins).
+2. Set **Updates** (wording varies) to **Install updates automatically** if you want silent updates, or **Notify, but don’t install** if you only want a prompt.
+3. Set **Update official add-ons from** (or similar) to **Any repositories** — not **Official versions only**. If this stays on “official only”, Kodi **ignores** newer versions on GitHub Pages and auto-update will appear broken.
+
+After that, Kodi refreshes **`addons.xml`** on a schedule. When the site lists a **higher `version`** than you have, you get an update (e.g. **My add-ons → Services → Smart Intro Skip**, or **Smart Intro Skip repo → Check for updates**). **Changelog** text comes from the **`news`** field in add-on metadata.
+
+If an update still doesn’t show after a release, install the latest **`01-install-this-first-repository…1.0.5.zip`** once (repo bump clears Kodi’s cached repo checksum), or restart Kodi and try **Check for updates** again.
 
 ## Settings
 
