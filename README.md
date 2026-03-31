@@ -1,5 +1,9 @@
 # Smart Intro Skip (Kodi)
 
+<p align="center">
+  <img src="plugin.video.introskip/resources/icon.png" alt="Smart Intro Skip" width="160" height="160">
+</p>
+
 Skips TV intros using timestamps from **[TheIntroDB](https://theintrodb.org)**. Shows a skip button until the intro ends or you press it.
 
 ## Credits
@@ -41,7 +45,11 @@ You can also use the download page on a phone or PC, grab a zip, and copy it to 
 
 ### Direct zip (addon only, no repository)
 
-1. **Settings → Add-ons → Install from zip file** → **`plugin.video.introskip-1.0.1.zip`** from the **`zips`** folder.
+1. **Settings → Add-ons → Install from zip file** → **`plugin.video.introskip-1.0.2.zip`** from the **`zips`** folder.
+
+### Updates (installed from this repo)
+
+Kodi refreshes the repository on a timer. When **`addons.xml`** on the site lists a **newer `version`** than the one you have, the add-on shows an **Update** entry (e.g. under **My add-ons → Services → Smart Intro Skip**, or run **Check for updates** on **Smart Intro Skip repo**). Release notes appear from the **`news`** field in the add-on metadata when you view the update.
 
 ## Settings
 
