@@ -21,16 +21,17 @@ _POLL_INTERVAL = 0.5
 class SkipOverlay(xbmcgui.WindowXMLDialog):
 
     def __new__(cls, xml_file, addon_path, skin, res,
-                callback=None, intro_end=None, player=None):
+                callback=None, intro_end=None, player=None, monitor=None):
         return super(SkipOverlay, cls).__new__(cls, xml_file, addon_path, skin, res)
 
     def __init__(self, xml_file, addon_path, skin, res,
-                 callback=None, intro_end=None, player=None):
+                 callback=None, intro_end=None, player=None, monitor=None):
         super(SkipOverlay, self).__init__(xml_file, addon_path, skin, res)
         self._skip_pressed = False
         self._callback = callback
         self._intro_end = intro_end
         self._player = player
+        self._monitor = monitor
         self._poll_thread = None
         self._closed = False
         self._lock = threading.Lock()
@@ -40,6 +41,10 @@ class SkipOverlay(xbmcgui.WindowXMLDialog):
         return self._skip_pressed
 
     def onInit(self):
+        mon = self._monitor if self._monitor is not None else xbmc.Monitor()
+        if mon.abortRequested():
+            self._dismiss_main_thread()
+            return
         try:
             self.setFocusId(BUTTON_ID)
         except Exception:
@@ -79,7 +84,7 @@ class SkipOverlay(xbmcgui.WindowXMLDialog):
         self._dismiss_main_thread()
 
     def _poll_loop(self):
-        mon = xbmc.Monitor()
+        mon = self._monitor if self._monitor is not None else xbmc.Monitor()
         # edge case: intro already over when the dialog opens
         try:
             pl = self._player
@@ -125,8 +130,11 @@ class SkipOverlay(xbmcgui.WindowXMLDialog):
             pass
 
 
-def show_skip_overlay(callback=None, intro_end=None, player=None):
+def show_skip_overlay(callback=None, intro_end=None, player=None, monitor=None):
     # blocks until close; True if they actually skipped
+    mon = monitor if monitor is not None else xbmc.Monitor()
+    if mon.abortRequested():
+        return False
     try:
         wnd = SkipOverlay(
             'overlay.xml',
@@ -136,6 +144,7 @@ def show_skip_overlay(callback=None, intro_end=None, player=None):
             callback=callback,
             intro_end=intro_end,
             player=player,
+            monitor=monitor,
         )
         wnd.doModal()
         pressed = wnd.skip_pressed

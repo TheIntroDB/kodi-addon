@@ -137,10 +137,13 @@ def _run_service():
                 _debug_osd('Auto-skipped intro')
                 xbmc.log('[IntroSkip] Auto-skipped to {:.1f}s'.format(api_end), xbmc.LOGINFO)
             else:
+                if monitor.abortRequested():
+                    break
                 xbmc.log('[IntroSkip] Showing skip overlay', xbmc.LOGINFO)
                 pressed = overlay_mod.show_skip_overlay(
                     intro_end=api_end,
                     player=player,
+                    monitor=monitor,
                 )
                 if pressed:
                     xbmc.log('[IntroSkip] User pressed Skip Intro', xbmc.LOGINFO)

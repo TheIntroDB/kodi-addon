@@ -2,14 +2,14 @@
 <addons>
 <addon id="plugin.video.introskip"
        name="Smart Intro Skip"
-       version="1.0.2"
+       version="1.0.3"
        provider-name="AutoSkip">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
     <extension point="xbmc.service" library="service.py" start="startup"/>
     <extension point="xbmc.addon.metadata">
-        <path>plugin.video.introskip-1.0.2.zip</path>
+        <path>plugin.video.introskip-1.0.3.zip</path>
         <summary lang="en_GB">Skip TV intros using TheIntroDB timestamps</summary>
         <description lang="en_GB">Service addon: looks up intros on theintrodb.org (community DB at github.com/TheIntroDB), shows a skip button for the intro window. Needs TMDB metadata on what you're playing.</description>
         <platform>all</platform>
@@ -17,7 +17,7 @@
         <assets>
             <icon>resources/icon.png</icon>
         </assets>
-        <news lang="en_GB">v1.0.2 — Addon icon; metadata for Kodi and repo listing.</news>
+        <news lang="en_GB">v1.0.3 — Overlay uses service monitor so Kodi can unload the add-on for updates (fixes “Update failed” while the skip UI is active).</news>
     </extension>
 </addon>
 </addons>
