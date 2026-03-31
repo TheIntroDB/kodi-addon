@@ -15,7 +15,7 @@ The site is the **`docs/`** folder on **`main`** served as static files. No Jeky
 
 **Layout:** `addons.xml` and checksums stay in **`docs/`** root (what Kodi’s repo uses). **Zips** are in **`docs/zips/`**. **`docs/zips/index.html`** is required so **`/zips/`** does not 404 on GitHub Pages (folders need an `index.html`). The site root **`docs/index.html`** is the minimal download page.
 
-The repository addon uses **`.../zips/`** for `datadir` so Kodi pulls **`plugin.video.introskip-X.Y.Z.zip`** from there (filename must match id + version). **`info` / `checksum` / `datadir` must be inside `<dir>`** — Kodi 20+ no longer accepts the old flat schema ([xbmc `Repository.cpp`](https://github.com/xbmc/xbmc/blob/master/xbmc/addons/Repository.cpp)).
+The repository addon uses **`.../zips/`** for `datadir`. Kodi’s default package URL is **`datadir/id/id-version.zip`** ([`AddonInfoBuilder.cpp`](https://github.com/xbmc/xbmc/blob/master/xbmc/addons/addoninfo/AddonInfoBuilder.cpp)); for a **flat** zip (`zips/plugin.video.introskip-1.0.1.zip`), set **`<path>plugin.video.introskip-1.0.1.zip</path>`** under **`xbmc.addon.metadata`** in **`addons.xml`** (and the add-on’s `addon.xml`). **`info` / `checksum` / `datadir` must be inside `<dir>`** — Kodi 20+ ([`Repository.cpp`](https://github.com/xbmc/xbmc/blob/master/xbmc/addons/Repository.cpp)).
 
 ## Release checklist
 

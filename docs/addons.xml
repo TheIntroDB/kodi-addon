@@ -9,6 +9,7 @@
     </requires>
     <extension point="xbmc.service" library="service.py" start="startup"/>
     <extension point="xbmc.addon.metadata">
+        <path>plugin.video.introskip-1.0.1.zip</path>
         <summary lang="en_GB">Skip TV intros using TheIntroDB timestamps</summary>
         <description lang="en_GB">Service addon: looks up intros on theintrodb.org (community DB at github.com/TheIntroDB), shows a skip button for the intro window. Needs TMDB metadata on what you're playing.</description>
         <platform>all</platform>
