@@ -24,24 +24,6 @@ So it works with **Seren, Fen, Umbrella, or your local library** as long as the 
 
 ## Installation
 
-### Why are there two zip files on GitHub?
-
-They are **not** two copies of the same thing. Kodi treats them as **two different add-ons**:
-
-| Zip | Kodi add-on id | Role |
-|-----|----------------|------|
-| **`repository.smartintro.jz-1.0.0.zip`** | `repository.smartintro.jz` | **Repository only** — a tiny package that says “here is `addons.xml` and where to download zips.” No skip logic inside. |
-| **`plugin.video.introskip-1.0.1.zip`** | `plugin.video.introskip` | **Your actual addon** (service, UI, TheIntroDB client). |
-
-You **cannot** merge those into a single zip and still use **Install from repository** the normal way — Kodi’s repo system expects a separate repository add-on that points at the index (`addons.xml`) and the addon zip(s).
-
-**What people actually download by hand:**
-
-- **Repo route:** they only need **one** file — **`repository.smartintro.jz-1.0.0.zip`**. After that, **Install from repository** pulls **`plugin.video.introskip-*.zip`** for them; they don’t download it from GitHub manually.
-- **Direct route:** they only download **`plugin.video.introskip-1.0.1.zip`** and skip the repository entirely.
-
-So: two zips on the server, but each user only grabs **one** of them, depending on the path they choose.
-
 ### Repo route (recommended — updates in Kodi)
 
 1. Download **`repository.smartintro.jz-1.0.0.zip`** from the **root of this GitHub repo** (short link: [project root on `main`](https://github.com/JZOnTheGit/Smart-Intro-Skip)).
