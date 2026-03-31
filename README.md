@@ -34,7 +34,7 @@ So it works with **Seren, Fen, Umbrella, or your local library** as long as the 
 
 `https://jzonthegit.github.io/Smart-Intro-Skip/zips/`
 
-**Install from zip** → open that source → install **`01-install-this-first-repository.smartintro.jz-1.0.5.zip`** first (recommended), or **`plugin.video.introskip-1.0.2.zip`** for addon-only.
+**Install from zip** → open that source → install **`01-install-this-first-repository.smartintro.jz-1.0.5.zip`** first (recommended), or **`plugin.video.introskip-1.0.3.zip`** for addon-only.
 
 You can also use the download page on a phone or PC, grab a zip, and copy it to your device (USB, share, etc.).
 
@@ -45,7 +45,7 @@ You can also use the download page on a phone or PC, grab a zip, and copy it to 
 
 ### Direct zip (addon only, no repository)
 
-1. **Settings → Add-ons → Install from zip file** → **`plugin.video.introskip-1.0.2.zip`** from the **`zips`** folder.
+1. **Settings → Add-ons → Install from zip file** → **`plugin.video.introskip-1.0.3.zip`** from the **`zips`** folder.
 
 ### Updates (installed from this repo)
 
