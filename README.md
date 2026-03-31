@@ -26,11 +26,11 @@ So it works with **Seren, Fen, Umbrella, or your local library** as long as the 
 
 **Download page:** [https://jzonethegit.github.io/Smart-Intro-Skip/](https://jzonethegit.github.io/Smart-Intro-Skip/)
 
-**If you add this site in Kodi as a file source** (so you can pick a zip without copying files), use this URL — it only lists the two zips, nothing else:
+**Kodi file source URL** (same zips as the page above):
 
 `https://jzonethegit.github.io/Smart-Intro-Skip/zips/`
 
-Then **Install from zip** → open that source → install **`01-install-this-first-…`** first (recommended), or **`plugin.video.introskip-1.0.1.zip`** for the addon only.
+**Install from zip** → open that source → pick **`01-install-this-first-…`** first (recommended), or **`plugin.video.introskip-1.0.1.zip`** for addon-only.
 
 You can also open the download page on a phone or PC, grab a zip, and copy it to your device (USB, share, etc.).
 
