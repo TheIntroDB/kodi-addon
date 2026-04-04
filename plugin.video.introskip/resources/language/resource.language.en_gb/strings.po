@@ -22,7 +22,3 @@ msgstr ""
 msgctxt "#32003"
 msgid "Intro detected"
 msgstr ""
-
-msgctxt "#32004"
-msgid "Learned data reset successfully"
-msgstr ""

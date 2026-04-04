@@ -1,4 +1,4 @@
-"""Player subclass — tracks file path, whether I treat it as TV, and scrapes IDs for the API."""
+# subclasses xbmc.player — path, whether we treat this as tv-ish content, scrape ids for api
 import json
 import re
 import xbmc
@@ -32,7 +32,6 @@ class IntroSkipPlayer(xbmc.Player):
         return self._is_video
 
     def onAVStarted(self):
-        # Kodi fires this when playback actually starts
         self._playback_started = True
         try:
             self._filename = self.getPlayingFile()
@@ -67,8 +66,7 @@ class IntroSkipPlayer(xbmc.Player):
             return False
 
     def _detect_tv_content(self):
-        tv_only = ADDON.getSetting('tv_only') == 'true'
-
+        # episodes, sxxeyy in path, or long video — rough filter for streamers
         if not self._is_video:
             return False
 
@@ -79,17 +77,12 @@ class IntroSkipPlayer(xbmc.Player):
             media_type = tag.getMediaType()
             if media_type == 'episode':
                 return True
-            if tv_only and media_type == 'movie':
-                return False
         except Exception:
             pass
 
         if self._filename:
             if re.search(r'[Ss]\d{1,2}[Ee]\d{1,2}', self._filename):
                 return True
-
-        if tv_only:
-            return False
 
         min_duration = 600
         try:
@@ -102,7 +95,7 @@ class IntroSkipPlayer(xbmc.Player):
         return True
 
     def get_media_ids(self):
-        # RPC first, then tag. For TV I need the show's TMDB id, not the episode row.
+        # json-rpc first (addons often set ids there), then videoinfotag
         ids = {
             'imdb_id': None,
             'tmdb_id': None,
@@ -118,7 +111,6 @@ class IntroSkipPlayer(xbmc.Player):
         return ids
 
     def _active_video_player_id(self):
-        # I used to assume playerid 1; that breaks sometimes
         try:
             r = json.loads(xbmc.executeJSONRPC(
                 '{"jsonrpc":"2.0","method":"Player.GetActivePlayers","id":1}'))
@@ -133,7 +125,6 @@ class IntroSkipPlayer(xbmc.Player):
         return 1
 
     def _ids_from_jsonrpc(self, ids):
-        # GetItem + uniqueid — this is where streaming addons usually hide TMDB
         try:
             pid = self._active_video_player_id()
             query = json.dumps({
@@ -206,7 +197,6 @@ class IntroSkipPlayer(xbmc.Player):
                       xbmc.LOGWARNING)
 
     def _ids_from_infotag(self, ids):
-        # mop up whatever RPC didn't give me
         try:
             tag = self.getVideoInfoTag()
         except Exception:
@@ -270,19 +260,3 @@ class IntroSkipPlayer(xbmc.Player):
                 ids['is_movie'] = False
         except Exception:
             pass
-
-    def get_current_time_safe(self):
-        try:
-            if self.isPlaying():
-                return self.getTime()
-        except Exception:
-            pass
-        return 0.0
-
-    def get_total_time_safe(self):
-        try:
-            if self.isPlaying():
-                return self.getTotalTime()
-        except Exception:
-            pass
-        return 0.0

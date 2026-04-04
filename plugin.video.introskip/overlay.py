@@ -1,4 +1,4 @@
-"""Skip button dialog. Poll thread closes it with Dialog.Close so I don't poke GUI from the wrong thread."""
+# skip intro button windowxml — background thread closes when playhead passes intro end
 import threading
 import xbmc
 import xbmcgui
@@ -7,7 +7,8 @@ import xbmcaddon
 ADDON = xbmcaddon.Addon()
 ADDON_PATH = ADDON.getAddonInfo('path')
 
-OVERLAY_WINDOW_ID = 14000  # matches overlay.xml
+# must match overlay.xml window id
+OVERLAY_WINDOW_ID = 14000
 
 ACTION_SELECT = 7
 ACTION_MOUSE_LEFT_CLICK = 100
@@ -84,8 +85,8 @@ class SkipOverlay(xbmcgui.WindowXMLDialog):
         self._dismiss_main_thread()
 
     def _poll_loop(self):
+        # close from worker thread using dialog.close builtin — kodi does not like gui from random threads otherwise
         mon = self._monitor if self._monitor is not None else xbmc.Monitor()
-        # edge case: intro already over when the dialog opens
         try:
             pl = self._player
             if pl and pl.isPlaying() and pl.getTime() >= self._intro_end:
@@ -131,7 +132,7 @@ class SkipOverlay(xbmcgui.WindowXMLDialog):
 
 
 def show_skip_overlay(callback=None, intro_end=None, player=None, monitor=None):
-    # blocks until close; True if they actually skipped
+    # blocks until window closes; true if user hit skip
     mon = monitor if monitor is not None else xbmc.Monitor()
     if mon.abortRequested():
         return False

@@ -2,21 +2,14 @@
 <settings>
     <category label="General">
         <setting id="auto_skip" type="bool" label="Auto-skip intros (no button)" default="false"/>
-        <setting id="skip_offset" type="number" label="Extra seconds to skip past intro" default="2"/>
+        <setting id="skip_offset" type="number" label="Extra seconds to skip past intro end" default="2"/>
     </category>
     <category label="TheIntroDB">
-        <setting id="introdb_enabled" type="bool" label="Enable TheIntroDB lookups" default="true"/>
-        <setting id="introdb_api_key" type="text" label="API Key (optional, from theintrodb.org)" default=""/>
-    </category>
-    <category label="Coming Soon">
-        <setting id="introdb_skip_recap" type="bool" label="Skip recaps" default="false" enable="false"/>
-        <setting id="introdb_skip_credits" type="bool" label="Skip credits" default="false" enable="false"/>
-        <setting id="introdb_skip_preview" type="bool" label="Skip previews" default="false" enable="false"/>
-        <setting id="learning_enabled" type="bool" label="Learn intro times from usage" default="false" enable="false"/>
-        <setting id="audio_detection" type="bool" label="Audio-based detection" default="false" enable="false"/>
+        <setting id="introdb_enabled" type="bool" label="Enable lookups" default="true"/>
+        <setting id="introdb_api_key" type="text" label="API key (from theintrodb.org if required)" default=""/>
     </category>
     <category label="Debug">
-        <setting id="debug_logging" type="bool" label="Enable debug logging (kodi.log)" default="false"/>
-        <setting id="debug_osd" type="bool" label="Show debug info on screen (OSD)" default="false"/>
+        <setting id="debug_logging" type="bool" label="Verbose logging (kodi.log)" default="false"/>
+        <setting id="debug_osd" type="bool" label="On-screen debug notifications" default="false"/>
     </category>
 </settings>

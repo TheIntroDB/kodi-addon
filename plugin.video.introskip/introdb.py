@@ -1,4 +1,4 @@
-"""Thin wrapper around theintrodb.org's /v2/media API (TMDB + S/E for TV)."""
+# http client for theintrodb v2 /media — url from tmdb or imdb plus season/episode when needed
 import json
 import time
 import xbmc
@@ -11,9 +11,10 @@ except ImportError:
     from urllib2 import Request, urlopen, HTTPError, URLError
 
 ADDON = xbmcaddon.Addon()
+_ADDON_ID = ADDON.getAddonInfo('id')
 
 API_BASE = 'https://api.theintrodb.org/v2'
-MIN_REQUEST_GAP = 0.4  # seconds between calls
+MIN_REQUEST_GAP = 0.4  # small gap between requests
 _last_request_time = 0.0
 _rate_limit_until = 0.0
 
@@ -34,7 +35,10 @@ def _get_api_key():
 
 
 def _is_enabled():
-    return ADDON.getSetting('introdb_enabled') != 'false'
+    try:
+        return xbmcaddon.Addon(_ADDON_ID).getSetting('introdb_enabled') == 'true'
+    except Exception:
+        return ADDON.getSetting('introdb_enabled') == 'true'
 
 
 def _wait_rate_limit():
@@ -55,7 +59,7 @@ def _do_request(url, api_key):
     global _rate_limit_until
     req = Request(url)
     req.add_header('Accept', 'application/json')
-    req.add_header('User-Agent', 'KodiSmartIntroSkip/1.0')  # CF blocks default Python UA
+    req.add_header('User-Agent', 'KodiSmartIntroSkip/1.0')
     if api_key:
         req.add_header('Authorization', 'Bearer {}'.format(api_key))
 
@@ -80,7 +84,7 @@ def _do_request(url, api_key):
             xbmc.log('[IntroSkip] TheIntroDB 429 rate limited for {}s'.format(retry),
                      xbmc.LOGWARNING)
         elif e.code == 404:
-            xbmc.log('[IntroSkip] TheIntroDB 404: show/episode not in database', xbmc.LOGINFO)
+            xbmc.log('[IntroSkip] TheIntroDB 404: not in database', xbmc.LOGINFO)
         else:
             xbmc.log('[IntroSkip] TheIntroDB HTTP {}'.format(e.code), xbmc.LOGWARNING)
         return None
@@ -95,7 +99,7 @@ def _do_request(url, api_key):
 
 
 def _pick_best_segment(segments):
-    # start_ms null = 0; skip rows with no end_ms
+    # intro array may have multiple rows — take best score
     if not segments:
         return None, None
 
@@ -124,34 +128,81 @@ def _pick_best_segment(segments):
     return None, None
 
 
-def query_intro(tmdb_id=None, season=None, episode=None, is_movie=False, **kwargs):
-    # Returns (start_sec, end_sec) or (None, None)
+def _normalize_imdb(imdb_id):
+    if not imdb_id:
+        return None
+    s = str(imdb_id).strip()
+    if not s.startswith('tt'):
+        return None
+    return s
+
+
+def _valid_tmdb(tmdb_id):
+    try:
+        return int(str(tmdb_id)) > 0
+    except (ValueError, TypeError):
+        return False
+
+
+def _episode_nums(season, episode):
+    try:
+        s = int(season)
+        e = int(episode)
+        return s, e
+    except (TypeError, ValueError):
+        return None, None
+
+
+def _build_url(tmdb_id, imdb_id, season, episode, is_movie):
+    # prefer tmdb; if missing use imdb (api matches show/episode)
+    if tmdb_id and _valid_tmdb(tmdb_id):
+        tid = str(tmdb_id).strip()
+        if is_movie:
+            return '{}/media?tmdb_id={}'.format(API_BASE, tid), 'tmdb'
+        s, e = _episode_nums(season, episode)
+        if s is None or e is None or s <= 0 or e <= 0:
+            return None, None
+        return (
+            '{}/media?tmdb_id={}&season={}&episode={}'.format(API_BASE, tid, s, e),
+            'tmdb',
+        )
+
+    imdb = _normalize_imdb(imdb_id)
+    if not imdb:
+        return None, None
+
+    if is_movie:
+        return '{}/media?imdb_id={}'.format(API_BASE, imdb), 'imdb'
+
+    s, e = _episode_nums(season, episode)
+    if s is None or e is None or s <= 0 or e <= 0:
+        return None, None
+    return '{}/media?imdb_id={}&season={}&episode={}'.format(
+        API_BASE, imdb, s, e), 'imdb'
+
+
+def query_intro(tmdb_id=None, imdb_id=None, season=None, episode=None, is_movie=False):
+    # returns intro start/end in seconds, or none
     if not _is_enabled():
         return None, None
 
-    if not tmdb_id:
-        xbmc.log('[IntroSkip] TheIntroDB: no TMDB ID available, cannot query', xbmc.LOGINFO)
+    url, mode = _build_url(tmdb_id, imdb_id, season, episode, is_movie)
+    if not url:
+        if tmdb_id or imdb_id:
+            xbmc.log(
+                '[IntroSkip] TheIntroDB: need TMDB id, or IMDb tt… id with season/episode for TV',
+                xbmc.LOGINFO,
+            )
+        else:
+            xbmc.log('[IntroSkip] TheIntroDB: no TMDB or IMDb id', xbmc.LOGINFO)
         return None, None
 
-    try:
-        if int(tmdb_id) <= 0:
-            return None, None
-    except (ValueError, TypeError):
-        return None, None
-
-    api_key = _get_api_key()
-
-    if is_movie:
-        url = '{}/media?tmdb_id={}'.format(API_BASE, tmdb_id)
-    else:
-        url = '{}/media?tmdb_id={}&season={}&episode={}'.format(
-            API_BASE, tmdb_id, season, episode)
-
-    xbmc.log('[IntroSkip] TheIntroDB query: {}'.format(url), xbmc.LOGINFO)
+    xbmc.log('[IntroSkip] TheIntroDB query ({}): {}'.format(mode, url), xbmc.LOGINFO)
 
     if not _wait_rate_limit():
         return None, None
 
+    api_key = _get_api_key()
     data = _do_request(url, api_key)
     if not data:
         return None, None
@@ -165,51 +216,6 @@ def query_intro(tmdb_id=None, season=None, episode=None, is_movie=False, **kwarg
         xbmc.log('[IntroSkip] TheIntroDB intro: {:.1f}s -> {:.1f}s'.format(
             intro_start, intro_end), xbmc.LOGINFO)
     else:
-        xbmc.log('[IntroSkip] TheIntroDB: response had no usable intro segment', xbmc.LOGINFO)
+        xbmc.log('[IntroSkip] TheIntroDB: no usable intro segment', xbmc.LOGINFO)
 
     return intro_start, intro_end
-
-
-def query_all_segments(tmdb_id=None, season=None, episode=None, is_movie=False, **kwargs):
-    # same fetch as query_intro but returns all segment types — might use for recaps later
-    if not _is_enabled():
-        return {}
-
-    if not tmdb_id:
-        return {}
-
-    try:
-        if int(tmdb_id) <= 0:
-            return {}
-    except (ValueError, TypeError):
-        return {}
-
-    api_key = _get_api_key()
-
-    if is_movie:
-        url = '{}/media?tmdb_id={}'.format(API_BASE, tmdb_id)
-    else:
-        url = '{}/media?tmdb_id={}&season={}&episode={}'.format(
-            API_BASE, tmdb_id, season, episode)
-
-    xbmc.log('[IntroSkip] TheIntroDB query (all segments): {}'.format(url), xbmc.LOGINFO)
-
-    if not _wait_rate_limit():
-        return {}
-
-    data = _do_request(url, api_key)
-    if not data or 'error' in data:
-        return {}
-
-    result = {}
-    for seg_type in ('intro', 'recap', 'credits', 'preview'):
-        start, end = _pick_best_segment(data.get(seg_type, []))
-        if start is not None:
-            result[seg_type] = (start, end)
-
-    if result:
-        xbmc.log('[IntroSkip] TheIntroDB segments: {}'.format(
-            ', '.join('{} {:.1f}s->{:.1f}s'.format(k, v[0], v[1])
-                      for k, v in result.items())), xbmc.LOGINFO)
-
-    return result

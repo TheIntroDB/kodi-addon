@@ -1,7 +1,6 @@
-"""Seek past the intro. Writes to storage.py only when learning_enabled is on."""
+# seek to intro end + offset from settings
 import xbmc
 import xbmcaddon
-import storage
 
 ADDON = xbmcaddon.Addon()
 
@@ -21,11 +20,4 @@ def execute_skip(player, intro_start, intro_end, filename=None):
         intro_start, intro_end, target), xbmc.LOGINFO)
 
     player.seekTime(target)
-
-    if filename and ADDON.getSetting('learning_enabled') == 'true':
-        try:
-            storage.store_intro(filename, intro_start, intro_end)
-        except Exception as e:
-            xbmc.log('[IntroSkip] Failed to store intro data: {}'.format(e), xbmc.LOGERROR)
-
     return True

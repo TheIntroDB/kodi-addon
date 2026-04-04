@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addon id="plugin.video.introskip"
        name="Smart Intro Skip"
-       version="1.0.4"
+       version="1.2.0"
        provider-name="AutoSkip">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
     <extension point="xbmc.service" library="service.py" start="startup"/>
     <extension point="xbmc.addon.metadata">
-        <path>plugin.video.introskip-1.0.4.zip</path>
-        <summary lang="en_GB">Skip TV intros using TheIntroDB timestamps</summary>
-        <description lang="en_GB">Service addon: looks up intros on theintrodb.org (community DB at github.com/TheIntroDB), shows a skip button for the intro window. Needs TMDB metadata on what you're playing.</description>
+        <path>plugin.video.introskip-1.2.0.zip</path>
+        <summary lang="en_GB">Skip TV intros using TheIntroDB</summary>
+        <description lang="en_GB">Looks up intro timings from TheIntroDB while you watch. Uses TMDB ids when present; otherwise IMDb ids (tt…) with season/episode. Optional API key from theintrodb.org.</description>
         <platform>all</platform>
         <license>GPL-2.0-or-later</license>
         <assets>
             <icon>resources/icon.png</icon>
         </assets>
-        <news lang="en_GB">v1.0.4 — No skip button when resuming past the intro window (timeline vs TheIntroDB start/end).</news>
+        <news lang="en_GB">v1.2.0 — Simplified codebase; IMDb fallback when TMDB is missing; TheIntroDB-only scope; trimmed settings; fixed service state after auto-skip toggle.</news>
     </extension>
 </addon>

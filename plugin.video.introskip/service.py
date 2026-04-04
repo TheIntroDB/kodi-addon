@@ -1,6 +1,5 @@
-"""Service entry: watches playback, hits TheIntroDB, shows skip UI or auto-skips."""
+# kodi service entry: poll playback, query theintrodb, show skip ui or auto-seek
 import os
-import sys
 import xbmc
 import xbmcaddon
 import xbmcgui
@@ -8,11 +7,11 @@ import xbmcvfs
 
 from player import IntroSkipPlayer
 import skipper
-import storage
 import overlay as overlay_mod
 import introdb
 
 ADDON = xbmcaddon.Addon()
+_ADDON_ID = ADDON.getAddonInfo('id')
 ADDON_NAME = ADDON.getAddonInfo('name')
 _PROFILE = xbmcvfs.translatePath(ADDON.getAddonInfo('profile'))
 _SETUP_TIP_FLAG = os.path.join(_PROFILE, 'setup_tip_shown')
@@ -22,21 +21,22 @@ class IntroSkipMonitor(xbmc.Monitor):
     pass
 
 
-def _notify(message, duration=3000):
-    xbmc.executebuiltin('Notification({}, {}, {})'.format(ADDON_NAME, message, duration))
-
-
 def _debug_osd(message):
+    # optional toast spam for debugging
     if ADDON.getSetting('debug_osd') == 'true':
         xbmc.executebuiltin('Notification(IntroSkip, {}, 1500)'.format(message))
 
 
-def _bool(key):
-    return ADDON.getSetting(key) == 'true'
+def _fresh_bool(key):
+    # read setting again from disk so gui changes apply without restart
+    try:
+        return xbmcaddon.Addon(_ADDON_ID).getSetting(key) == 'true'
+    except Exception:
+        return ADDON.getSetting(key) == 'true'
 
 
 def _maybe_show_setup_tip(monitor):
-    # one-time dialog after install — don't block Kodi before the UI is up
+    # one-time ok dialog after install
     if os.path.isfile(_SETUP_TIP_FLAG):
         return
     if monitor.waitForAbort(3):
@@ -47,14 +47,13 @@ def _maybe_show_setup_tip(monitor):
         xbmcgui.Dialog().ok(
             ADDON_NAME,
             'Intro times come from TheIntroDB (theintrodb.org).[CR][CR]'
-            'Get your API key on that site, then open this addon settings and '
-            'paste it under TheIntroDB → API Key.[CR][CR]'
-            'Does not work without an API key as of yet.',
+            'Get an API key on that site if required, then paste it under '
+            'Add-on settings → TheIntroDB → API Key.',
         )
         with open(_SETUP_TIP_FLAG, 'w') as f:
             f.write('1')
     except Exception as e:
-        xbmc.log('[IntroSkip] setup tip dialog: {}'.format(e), xbmc.LOGWARNING)
+        xbmc.log('[IntroSkip] setup tip: {}'.format(e), xbmc.LOGWARNING)
 
 
 def _run_service():
@@ -64,7 +63,7 @@ def _run_service():
     xbmc.log('[IntroSkip] Service started', xbmc.LOGINFO)
     _maybe_show_setup_tip(monitor)
 
-    skip_done = False
+    # which file we already finished intro handling for; cleared when playback stops
     last_file = None
 
     while not monitor.abortRequested():
@@ -72,31 +71,32 @@ def _run_service():
             break
 
         if not player.playback_started:
-            if skip_done or last_file:
-                skip_done = False
-                last_file = None
+            last_file = None
             continue
 
+        # skip movies that do not look like tv; player decides
         if not player.is_tv_content:
-            continue
-
-        if skip_done:
             continue
 
         filename = player.filename
         if not filename:
             continue
 
+        # same file as last successful pass — do not run again
         if filename == last_file:
             continue
 
-        last_file = filename
-        skip_done = False
-
         _debug_osd('Monitoring: {}'.format(filename[-40:]))
 
-        introdb_on = _bool('introdb_enabled')
-        auto_skip = _bool('auto_skip')
+        introdb_on = _fresh_bool('introdb_enabled')
+        auto_skip = _fresh_bool('auto_skip')
+
+        if ADDON.getSetting('debug_logging') == 'true':
+            _raw = xbmcaddon.Addon(_ADDON_ID).getSetting('introdb_enabled')
+            xbmc.log(
+                '[IntroSkip] introdb_enabled raw={!r} lookups_on={}'.format(_raw, introdb_on),
+                xbmc.LOGINFO,
+            )
 
         media_ids = player.get_media_ids()
         tmdb = media_ids.get('tmdb_id')
@@ -113,9 +113,10 @@ def _run_service():
         api_start = None
         api_end = None
 
-        if introdb_on and tmdb:
+        if introdb_on and (tmdb or imdb):
             api_start, api_end = introdb.query_intro(
                 tmdb_id=tmdb,
+                imdb_id=imdb,
                 season=m_season,
                 episode=m_episode,
                 is_movie=m_movie,
@@ -126,30 +127,32 @@ def _run_service():
             xbmc.log('[IntroSkip] {}'.format(msg), xbmc.LOGINFO)
             _debug_osd(msg)
 
+            # resume or seek landed past intro — nothing to show
             if _playback_past_intro_end(player, api_end):
                 xbmc.log(
-                    '[IntroSkip] Already past intro window (resume or seek); skipping UI',
+                    '[IntroSkip] Already past intro window; skipping UI',
                     xbmc.LOGINFO,
                 )
-                skip_done = True
+                last_file = filename
                 continue
 
+            # wait until roughly intro start so we do not pop the overlay at t=0
             _wait_for_time(monitor, player, api_start)
 
             if not player.isPlaying():
+                last_file = filename
                 continue
 
             if _playback_past_intro_end(player, api_end):
                 xbmc.log(
-                    '[IntroSkip] Past intro end after wait (seek); skipping UI',
+                    '[IntroSkip] Past intro end after wait; skipping UI',
                     xbmc.LOGINFO,
                 )
-                skip_done = True
+                last_file = filename
                 continue
 
             if auto_skip:
                 skipper.execute_skip(player, api_start, api_end, filename)
-                skip_done = True
                 _debug_osd('Auto-skipped intro')
                 xbmc.log('[IntroSkip] Auto-skipped to {:.1f}s'.format(api_end), xbmc.LOGINFO)
             else:
@@ -165,20 +168,19 @@ def _run_service():
                     xbmc.log('[IntroSkip] User pressed Skip Intro', xbmc.LOGINFO)
                     skipper.execute_skip(player, api_start, api_end, filename)
                     _debug_osd('Skipped to {:.1f}s'.format(api_end))
-                skip_done = True
+            last_file = filename
         else:
-            if tmdb:
-                _debug_osd('TheIntroDB: no data for this episode')
-            elif imdb:
-                _debug_osd('Need TMDB ID (only have IMDB)')
-            else:
-                _debug_osd('No media IDs found')
+            if introdb_on:
+                if tmdb or imdb:
+                    _debug_osd('TheIntroDB: no intro for this item')
+                else:
+                    _debug_osd('No TMDB or IMDb id')
+            last_file = filename
 
     xbmc.log('[IntroSkip] Service stopped', xbmc.LOGINFO)
 
 
 def _playback_past_intro_end(player, api_end, margin=0.25):
-    """True if timeline is already at/after intro end (e.g. resumed mid-episode)."""
     try:
         if not player.isPlaying():
             return True
@@ -188,7 +190,7 @@ def _playback_past_intro_end(player, api_end, margin=0.25):
 
 
 def _wait_for_time(monitor, player, target_time):
-    # wait until playback hits intro start, or bail if they stop/pause
+    # spin until intro start is near, or playback stops
     while not monitor.abortRequested():
         if monitor.waitForAbort(0.5):
             return
@@ -202,13 +204,5 @@ def _wait_for_time(monitor, player, target_time):
             return
 
 
-def _handle_reset():
-    storage.reset_all()
-    _notify('Learned data reset')
-
-
 if __name__ == '__main__':
-    if len(sys.argv) > 1 and sys.argv[1] == 'reset_data':
-        _handle_reset()
-    else:
-        _run_service()
+    _run_service()
