@@ -1,9 +1,6 @@
 # kodi service entry: poll playback, query theintrodb, show skip ui or auto-seek
-import os
 import xbmc
 import xbmcaddon
-import xbmcgui
-import xbmcvfs
 
 from player import IntroSkipPlayer
 import skipper
@@ -13,8 +10,6 @@ import introdb
 ADDON = xbmcaddon.Addon()
 _ADDON_ID = ADDON.getAddonInfo('id')
 ADDON_NAME = ADDON.getAddonInfo('name')
-_PROFILE = xbmcvfs.translatePath(ADDON.getAddonInfo('profile'))
-_SETUP_TIP_FLAG = os.path.join(_PROFILE, 'setup_tip_shown')
 
 
 class IntroSkipMonitor(xbmc.Monitor):
@@ -34,34 +29,11 @@ def _fresh_bool(key):
     except Exception:
         return ADDON.getSetting(key) == 'true'
 
-
-def _maybe_show_setup_tip(monitor):
-    # one-time ok dialog after install
-    if os.path.isfile(_SETUP_TIP_FLAG):
-        return
-    if monitor.waitForAbort(3):
-        return
-    try:
-        if not os.path.isdir(_PROFILE):
-            os.makedirs(_PROFILE)
-        xbmcgui.Dialog().ok(
-            ADDON_NAME,
-            'Intro times come from TheIntroDB (theintrodb.org).[CR][CR]'
-            'Get an API key on that site if required, then paste it under '
-            'Add-on settings → TheIntroDB → API Key.',
-        )
-        with open(_SETUP_TIP_FLAG, 'w') as f:
-            f.write('1')
-    except Exception as e:
-        xbmc.log('[IntroSkip] setup tip: {}'.format(e), xbmc.LOGWARNING)
-
-
 def _run_service():
     monitor = IntroSkipMonitor()
     player = IntroSkipPlayer()
 
     xbmc.log('[IntroSkip] Service started', xbmc.LOGINFO)
-    _maybe_show_setup_tip(monitor)
 
     # which file we already finished intro handling for; cleared when playback stops
     last_file = None
