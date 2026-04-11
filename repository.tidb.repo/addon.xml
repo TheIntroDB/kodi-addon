@@ -5,8 +5,8 @@
        provider-name="TheIntroDB">
     <extension point="xbmc.addon.repository" name="TheIntroDB Kodi Addon Repo">
         <dir>
-            <info compressed="false">https://github.com/TheIntroDB/kodi-addon/releases/latest/download/addons.xml</info>
-            <checksum>https://github.com/TheIntroDB/kodi-addon/releases/latest/download/addons.xml.md5</checksum>
+            <info compressed="false">https://raw.githubusercontent.com/TheIntroDB/kodi-addon/main/addons.xml</info>
+            <checksum>https://raw.githubusercontent.com/TheIntroDB/kodi-addon/main/addons.xml.md5</checksum>
             <datadir zip="true">https://github.com/TheIntroDB/kodi-addon/releases/download/</datadir>
         </dir>
     </extension>
