@@ -27,7 +27,7 @@ def _log_resp(body):
     if not _debug_logging():
         return
     snippet = body[:500] if len(body) > 500 else body
-    xbmc.log('[IntroSkip] TheIntroDB response: {}'.format(snippet), xbmc.LOGINFO)
+    xbmc.log('[TheIntroDB] TheIntroDB response: {}'.format(snippet), xbmc.LOGINFO)
 
 
 def _get_api_key():
@@ -45,7 +45,7 @@ def _wait_rate_limit():
     global _last_request_time
     now = time.time()
     if now < _rate_limit_until:
-        xbmc.log('[IntroSkip] TheIntroDB rate-limited until {:.0f}'.format(
+        xbmc.log('[TheIntroDB] TheIntroDB rate-limited until {:.0f}'.format(
             _rate_limit_until), xbmc.LOGINFO)
         return False
     gap = now - _last_request_time
@@ -59,7 +59,7 @@ def _do_request(url, api_key):
     global _rate_limit_until
     req = Request(url)
     req.add_header('Accept', 'application/json')
-    req.add_header('User-Agent', 'KodiSmartIntroSkip/1.0')
+    req.add_header('User-Agent', 'TheIntroDB Kodi Addon/1.0')
     if api_key:
         req.add_header('Authorization', 'Bearer {}'.format(api_key))
 
@@ -81,19 +81,19 @@ def _do_request(url, api_key):
                         pass
                     break
             _rate_limit_until = time.time() + retry
-            xbmc.log('[IntroSkip] TheIntroDB 429 rate limited for {}s'.format(retry),
+            xbmc.log('[TheIntroDB] TheIntroDB 429 rate limited for {}s'.format(retry),
                      xbmc.LOGWARNING)
         elif e.code == 404:
-            xbmc.log('[IntroSkip] TheIntroDB 404: not in database', xbmc.LOGINFO)
+            xbmc.log('[TheIntroDB] TheIntroDB 404: not in database', xbmc.LOGINFO)
         else:
-            xbmc.log('[IntroSkip] TheIntroDB HTTP {}'.format(e.code), xbmc.LOGWARNING)
+            xbmc.log('[TheIntroDB] TheIntroDB HTTP {}'.format(e.code), xbmc.LOGWARNING)
         return None
     except URLError as e:
-        xbmc.log('[IntroSkip] TheIntroDB network error: {}'.format(e.reason),
+        xbmc.log('[TheIntroDB] TheIntroDB network error: {}'.format(e.reason),
                  xbmc.LOGWARNING)
         return None
     except Exception as e:
-        xbmc.log('[IntroSkip] TheIntroDB request failed: {}'.format(e),
+        xbmc.log('[TheIntroDB] TheIntroDB request failed: {}'.format(e),
                  xbmc.LOGERROR)
         return None
 
@@ -190,14 +190,14 @@ def query_intro(tmdb_id=None, imdb_id=None, season=None, episode=None, is_movie=
     if not url:
         if tmdb_id or imdb_id:
             xbmc.log(
-                '[IntroSkip] TheIntroDB: need TMDB id, or IMDb tt… id with season/episode for TV',
+                '[TheIntroDB] TheIntroDB: need TMDB id, or IMDb tt… id with season/episode for TV',
                 xbmc.LOGINFO,
             )
         else:
-            xbmc.log('[IntroSkip] TheIntroDB: no TMDB or IMDb id', xbmc.LOGINFO)
+            xbmc.log('[TheIntroDB] TheIntroDB: no TMDB or IMDb id', xbmc.LOGINFO)
         return None, None
 
-    xbmc.log('[IntroSkip] TheIntroDB query ({}): {}'.format(mode, url), xbmc.LOGINFO)
+    xbmc.log('[TheIntroDB] TheIntroDB query ({}): {}'.format(mode, url), xbmc.LOGINFO)
 
     if not _wait_rate_limit():
         return None, None
@@ -208,14 +208,14 @@ def query_intro(tmdb_id=None, imdb_id=None, season=None, episode=None, is_movie=
         return None, None
 
     if 'error' in data:
-        xbmc.log('[IntroSkip] TheIntroDB error: {}'.format(data['error']), xbmc.LOGINFO)
+        xbmc.log('[TheIntroDB] TheIntroDB error: {}'.format(data['error']), xbmc.LOGINFO)
         return None, None
 
     intro_start, intro_end = _pick_best_segment(data.get('intro', []))
     if intro_start is not None:
-        xbmc.log('[IntroSkip] TheIntroDB intro: {:.1f}s -> {:.1f}s'.format(
+        xbmc.log('[TheIntroDB] TheIntroDB intro: {:.1f}s -> {:.1f}s'.format(
             intro_start, intro_end), xbmc.LOGINFO)
     else:
-        xbmc.log('[IntroSkip] TheIntroDB: no usable intro segment', xbmc.LOGINFO)
+        xbmc.log('[TheIntroDB] TheIntroDB: no usable intro segment', xbmc.LOGINFO)
 
     return intro_start, intro_end

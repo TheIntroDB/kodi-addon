@@ -1,10 +1,10 @@
 # Smart Intro Skip language file
 msgid ""
 msgstr ""
-"Project-Id-Version: plugin.video.introskip\n"
+"Project-Id-Version: plugin.video.tidb\n"
 "Report-Msgid-Bugs-To: \n"
 "PO-Revision-Date: 2024-01-01 00:00+0000\n"
-"Last-Translator: AutoSkip\n"
+"Last-Translator: TheIntroDB\n"
 "Language-Team: English\n"
 "Language: en_GB\n"
 "MIME-Version: 1.0\n"

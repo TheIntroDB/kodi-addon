@@ -152,5 +152,5 @@ def show_skip_overlay(callback=None, intro_end=None, player=None, monitor=None):
         del wnd
         return pressed
     except Exception as e:
-        xbmc.log('[IntroSkip] Overlay error: {}'.format(e), xbmc.LOGERROR)
+        xbmc.log('[TheIntroDB] Overlay error: {}'.format(e), xbmc.LOGERROR)
         return False

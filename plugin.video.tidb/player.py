@@ -7,9 +7,9 @@ import xbmcaddon
 ADDON = xbmcaddon.Addon()
 
 
-class IntroSkipPlayer(xbmc.Player):
+class TIDBPlayer(xbmc.Player):
     def __init__(self):
-        super(IntroSkipPlayer, self).__init__()
+        super(TIDBPlayer, self).__init__()
         self._playback_started = False
         self._filename = None
         self._is_tv = False
@@ -40,7 +40,7 @@ class IntroSkipPlayer(xbmc.Player):
 
         self._is_video = self._check_is_video()
         self._is_tv = self._detect_tv_content()
-        xbmc.log('[IntroSkip] Playback started: {} (tv={}, video={})'.format(
+        xbmc.log('[TheIntroDB] Playback started: {} (tv={}, video={})'.format(
             self._filename, self._is_tv, self._is_video), xbmc.LOGINFO)
 
     def onPlayBackStopped(self):
@@ -53,7 +53,7 @@ class IntroSkipPlayer(xbmc.Player):
         self._reset()
 
     def _reset(self):
-        xbmc.log('[IntroSkip] Playback ended/stopped', xbmc.LOGINFO)
+        xbmc.log('[TheIntroDB] Playback ended/stopped', xbmc.LOGINFO)
         self._playback_started = False
         self._filename = None
         self._is_tv = False
@@ -107,7 +107,7 @@ class IntroSkipPlayer(xbmc.Player):
         self._ids_from_jsonrpc(ids)
         self._ids_from_infotag(ids)
 
-        xbmc.log('[IntroSkip] Extracted media IDs: {}'.format(ids), xbmc.LOGINFO)
+        xbmc.log('[TheIntroDB] Extracted media IDs: {}'.format(ids), xbmc.LOGINFO)
         return ids
 
     def _active_video_player_id(self):
@@ -143,7 +143,7 @@ class IntroSkipPlayer(xbmc.Player):
             item = response.get('result', {}).get('item', {})
 
             if ADDON.getSetting('debug_logging') == 'true':
-                xbmc.log('[IntroSkip] JSON-RPC item: type={} uniqueid={} imdbnumber={}'.format(
+                xbmc.log('[TheIntroDB] JSON-RPC item: type={} uniqueid={} imdbnumber={}'.format(
                     item.get('type'), item.get('uniqueid'), item.get('imdbnumber')),
                     xbmc.LOGINFO)
 
@@ -193,7 +193,7 @@ class IntroSkipPlayer(xbmc.Player):
                 ids['is_movie'] = False
 
         except Exception as e:
-            xbmc.log('[IntroSkip] JSON-RPC Player.GetItem failed: {}'.format(e),
+            xbmc.log('[TheIntroDB] JSON-RPC Player.GetItem failed: {}'.format(e),
                       xbmc.LOGWARNING)
 
     def _ids_from_infotag(self, ids):
