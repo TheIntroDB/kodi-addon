@@ -8,7 +8,7 @@
     </requires>
     <extension point="xbmc.service" library="service.py" start="startup"/>
     <extension point="xbmc.addon.metadata">
-        <path>plugin.video.introskip-1.2.1.zip</path>
+        <path>plugin.video.tidb-1.2.1.zip</path>
         <summary lang="en_GB">Skip TV intros using TheIntroDB</summary>
         <description lang="en_GB">Looks up intro timings from TheIntroDB while you watch. Uses TMDB ids when present; otherwise IMDb ids (tt…) with season/episode.</description>
         <platform>all</platform>

@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addons>
-<addon id="plugin.video.introskip"
-       name="Smart Intro Skip"
+<addon id="plugin.video.tidb"
+       name="TheIntroDB Kodi Addon"
        version="1.2.1"
-       provider-name="AutoSkip">
+       provider-name="TheIntroDB">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
     <extension point="xbmc.service" library="service.py" start="startup"/>
     <extension point="xbmc.addon.metadata">
-        <path>plugin.video.introskip-1.2.1.zip</path>
+        <path>plugin.video.tidb-1.2.1.zip</path>
         <summary lang="en_GB">Skip TV intros using TheIntroDB</summary>
         <description lang="en_GB">Looks up intro timings from TheIntroDB while you watch. Uses TMDB ids when present; otherwise IMDb ids (tt…) with season/episode.</description>
         <platform>all</platform>

@@ -20,7 +20,7 @@ Kodi service add-on that gets intro segments from **[TheIntroDB](https://theintr
 
 1. In Kodi, go to **Settings → Add-ons → Install from zip file**.
 2. Download the repository zip from:
-   `https://theintrodb.github.io/kodi-addon/zips/01-install-this-first-repository.smartintro.jz-1.0.7.zip`
+   `https://theintrodb.github.io/kodi-addon/zips/01-install-this-first-repository.tidb.repo-1.0.7.zip`
 3. Install the zip, then go to **Install from repository**.
 4. Open **TheIntroDB Kodi Repository** and install **TheIntroDB Kodi Addon**.
 5. Allow third-party repository updates under **Settings → System → Add-ons** if you want automatic updates.
@@ -28,13 +28,13 @@ Kodi service add-on that gets intro segments from **[TheIntroDB](https://theintr
 ### Option B: Add-on zip only
 
 1. Download the latest add-on zip from:
-   `https://theintrodb.github.io/kodi-addon/zips/plugin.video.introskip-1.2.1.zip`
+   `https://theintrodb.github.io/kodi-addon/zips/plugin.video.tidb-1.2.1.zip`
 2. In Kodi, choose **Settings → Add-ons → Install from zip file**.
 3. Select the zip to install the add-on directly.
 
 ### Option C: Copy into the Kodi add-ons folder
 
-1. Unzip or copy the add-on folder named `plugin.video.introskip` into Kodi’s add-ons directory for your platform.
+1. Unzip or copy the add-on folder named `plugin.video.tidb` into Kodi’s add-ons directory for your platform.
 2. Restart Kodi or reload add-ons.
 
 ---
