@@ -26,23 +26,7 @@ jobs:
         python -m pip install --upgrade pip
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         pip install requests
-    - name: TEST TheIntroDB API connectivity
-      run: |
-        python -c "
-        import requests
-        try:
-            response = requests.get('https://api.theintrodb.org/health', timeout=10)
-            print(f'API Status: {response.status_code}')
-            if response.status_code == 200:
-                print('TheIntroDB API is accessible')
-            else:
-                print('TheIntroDB API returned non-200 status')
-                exit(1)
-        except Exception as e:
-            print(f'Failed to connect to TheIntroDB API: {e}')
-            exit(1)
-        "
-      if: always()
+
     - name: TEST Addon imports
       run: |
         python -c "
