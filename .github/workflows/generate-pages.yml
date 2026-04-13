@@ -1,0 +1,66 @@
+name: Generate Static Pages
+
+on:
+  release:
+    types: [published, edited, deleted]
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/generate-pages.js'
+      - '.github/workflows/generate-pages.yml'
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  generate-pages:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Generate static pages
+      run: |
+        cd docs
+        node generate-pages.js
+        
+    - name: Commit and push changes
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+        # Check if there are changes
+        if [[ -n $(git status --porcelain docs/) ]]; then
+          git add docs/
+          git commit -m "Update static version pages from releases"
+          git push
+        else
+          echo "No changes to commit"
+        fi
+        
+    - name: Upload to GitHub Pages
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: 'docs'
+        
+  deploy:
+    needs: generate-pages
+    runs-on: ubuntu-latest
+    
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+      
+    steps:
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4
