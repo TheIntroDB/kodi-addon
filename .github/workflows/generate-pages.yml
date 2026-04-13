@@ -87,45 +87,15 @@ jobs:
             const fs = require('fs');
             let indexContent = fs.readFileSync('index.html', 'utf8');
             
-            // Replace the placeholder with actual plugin links
+            // Replace the existing <pre> block with the updated plugin link
             indexContent = indexContent.replace(
-              '<div id="plugin-links">\n  <!-- Plugin links will be inserted here by GitHub Actions -->\n</div>',
+              /<pre>[\s\S]*?<\/pre>/,
               `<pre>\n${pluginLinksHtml}</pre>`
             );
             
             // Write the updated index.html
             fs.writeFileSync('index.html', indexContent);
             console.log('Updated index.html with plugin links');
-            
-            // Generate version folders
-            for (const release of releases) {
-              const version = release.tag_name;
-              const versionDir = version;
-              
-              // Create version directory
-              if (!fs.existsSync(versionDir)) {
-                fs.mkdirSync(versionDir, { recursive: true });
-                console.log(`Created directory: ${version}/`);
-              }
-              
-              // Generate version index.html
-              const pluginAssets = release.assets.filter(asset => 
-                asset.name === 'plugin.video.tidb.zip' || 
-                asset.name === 'addons.xml' || 
-                asset.name === 'addons.xml.md5'
-              );
-              
-              let versionHtml = `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>Index of /${version}/</title></head><body><h1>Index of /${version}/</h1><pre><a href="../">../</a>`;
-              
-              pluginAssets.forEach(asset => {
-                versionHtml += `\n<a href="${asset.browser_download_url}">${asset.name}</a>`;
-              });
-              
-              versionHtml += `</pre></body></html>`;
-              
-              fs.writeFileSync(`${versionDir}/index.html`, versionHtml);
-              console.log(`Generated: ${version}/index.html`);
-            }
             
             console.log('Static page generation complete!');
             
