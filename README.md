@@ -4,7 +4,7 @@
   <img src="https://raw.githubusercontent.com/TheIntroDB/theintrodb-assets/main/logo-banner.png">
 </p>
 
-Kodi service add-on that gets intro segments from **[TheIntroDB](https://theintrodb.org)** and either shows a **Skip intro** control or **auto-skips** it.
+Kodi service add-on that gets intro, recap, credits, and preview segments from **[TheIntroDB](https://theintrodb.org)** for movies and TV shows and shows a skip button or auto skips for you!
 
 **Requirements:** Kodi 19+. **TMDb metadata is recommended** for best accuracy. IMDb works as a fallback for supported items.
 
@@ -45,25 +45,18 @@ Kodi service add-on that gets intro segments from **[TheIntroDB](https://theintr
 
 For TV episodes, the playing item also needs valid **season** and **episode** numbers. If your source add-on or library does not expose provider IDs, TheIntroDB cannot match the item.
 
-## Features
-
-- **Skip intro** button during the intro window
-- **Auto-skip** mode that seeks past the intro without showing the button
-- **Optional API key** support for TheIntroDB
-- **Debug logging and on-screen notifications** for troubleshooting
-
 ## How It Works
 
 On each new playback, the add-on reads what Kodi exposes for the current item through JSON-RPC `Player.GetItem` and `VideoInfoTag`: **TMDb ID** when available, otherwise **IMDb** `tt...` ID, plus **season** and **episode** for TV content.
 
-It then calls TheIntroDB, retrieves intro **start** and **end** times, waits until the intro window begins, and either shows the skip overlay or seeks automatically depending on your settings.
+It then calls TheIntroDB, retrieves segment **start** and **end** times, waits until the segment window begins, and either shows the skip overlay or seeks automatically depending on your settings.
 
 ## Configuration
 
 TheIntroDB Kodi Addon includes a few settings to adjust behavior:
 
 - **Auto-skip**: Skip without showing the button
-- **Extra seconds after intro end**: Adds a small offset to the skip target
+- **Extra seconds after segment end**: Adds a small offset to the skip target
 - **Enable lookups**: Turns TheIntroDB requests on or off
 - **API key**: Lets you use your TheIntroDB API key if required
 - **Debug options**: Enables verbose logging and on-screen notifications
