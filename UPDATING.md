@@ -3,8 +3,7 @@
 1. Update the version number in the plugin.video.tidb/addon.xml file.
 2. Copy the plugin.video.tidb/addon.xml addon manifest to the addons.xml file.
 3. Run `md5 -q addons.xml > addons.xml.md5` (for the root manifest)
-4. Create a new release on GitHub with the updated version number and a description of the changes.
-5. Zip and upload the plugin.video.tidb.zip to the release
+4. Zip the plugin.video.tidb folder and rename it to `plugin.video.tidb-[version].zip`
+5. Move the zip file to the /docs folder and update index.html with the new version
 
-This addon uses **GitHub Releases** for distribution. When a new version is released, the addons.xml file contains the latest version url (e.g., v1.2.2/plugin.video.tidb.zip), which is appended to the addons.xml zip directory (https://github.com/TheIntroDB/kodi-addon/releases/download/)
-
+Kodi will detect a version difference in the addons.xml file and prompt you to update the addon. It pulls from the github pages URL to download the latest version of the addon.
