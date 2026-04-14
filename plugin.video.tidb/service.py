@@ -245,13 +245,37 @@ def _run_service():
             # Create dynamic button text for multiple segments
             segment_name = base_segment_name
             
-            if auto_skip:
+            # Handle auto-skip logic: only auto-skip intro segments
+            if auto_skip and segment_type == 'intro':
                 skipper.execute_skip(player, api_start, api_end, filename, segment_type)
                 _debug_osd('Auto-skipped {}'.format(segment_name))
                 xbmc.log('[TheIntroDB] Auto-skipped {} to {:.1f}s'.format(segment_name, api_end), xbmc.LOGINFO)
-                # Record that we auto-skipped this segment
+                # Record that we auto-skipped this intro segment
                 _record_segment_processing(processed_segments, segment_key, current_time_after_wait, was_skipped=True)
+            elif auto_skip and segment_type != 'intro':
+                # Auto-skip is enabled but this is not an intro segment - show skip button instead
+                if monitor.abortRequested():
+                    break
+                xbmc.log('[TheIntroDB] Auto-skip enabled but showing button for non-intro segment: {}'.format(segment_name), xbmc.LOGINFO)
+                pressed = overlay_mod.show_skip_overlay(
+                    intro_end=api_end,
+                    player=player,
+                    monitor=monitor,
+                    segment_type=segment_type,
+                    segment_index=segment_idx,
+                )
+                if pressed:
+                    xbmc.log('[TheIntroDB] User pressed Skip {}'.format(segment_name), xbmc.LOGINFO)
+                    skipper.execute_skip(player, api_start, api_end, filename, segment_type)
+                    _debug_osd('Skipped {} to {:.1f}s'.format(segment_name, api_end))
+                    # Record that user skipped this segment
+                    _record_segment_processing(processed_segments, segment_key, player.getTime() if player.isPlaying() else current_time_after_wait, was_skipped=True)
+                else:
+                    xbmc.log('[TheIntroDB] User did NOT skip {} - continuing to next segment'.format(segment_name), xbmc.LOGINFO)
+                    # Record that user saw but didn't skip this segment
+                    _record_segment_processing(processed_segments, segment_key, player.getTime() if player.isPlaying() else current_time_after_wait, was_skipped=False)
             else:
+                # Auto-skip is disabled - show skip button for all segments
                 if monitor.abortRequested():
                     break
                 xbmc.log('[TheIntroDB] Showing skip overlay for {}'.format(segment_name), xbmc.LOGINFO)
