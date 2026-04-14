@@ -1,11 +1,17 @@
 # skip intro button windowxml — background thread closes when playhead passes intro end
+import os
 import threading
 import xbmc
 import xbmcgui
 import xbmcaddon
+import xbmcvfs
 
 ADDON = xbmcaddon.Addon()
 ADDON_PATH = ADDON.getAddonInfo('path')
+# Must match the last argument to SkipOverlay / WindowXMLDialog (folder under resources/skins/default/).
+_OVERLAY_RES = '1080i'
+_BG_IMAGE_SHADOW = 3003
+_BG_IMAGE_FILL = 3004
 
 # must match overlay.xml window id
 OVERLAY_WINDOW_ID = 14000
@@ -17,6 +23,12 @@ ACTION_BACK = 92
 BUTTON_ID = 3001
 
 _POLL_INTERVAL = 0.5
+
+
+def _rounded_rect_texture_path():
+    joined = os.path.join(
+        ADDON_PATH, 'resources', 'skins', 'default', _OVERLAY_RES, 'rounded_rect.png')
+    return xbmcvfs.translatePath(joined)
 
 
 class SkipOverlay(xbmcgui.WindowXMLDialog):
@@ -46,6 +58,13 @@ class SkipOverlay(xbmcgui.WindowXMLDialog):
         if mon.abortRequested():
             self._dismiss_main_thread()
             return
+        # Reload pill textures by absolute path (relative paths sometimes fail for addon WindowXML on some platforms).
+        try:
+            tex = _rounded_rect_texture_path()
+            self.getControl(_BG_IMAGE_SHADOW).setImage(tex)
+            self.getControl(_BG_IMAGE_FILL).setImage(tex)
+        except Exception as e:
+            xbmc.log('[TheIntroDB] Overlay background textures: {}'.format(e), xbmc.LOGWARNING)
         try:
             self.setFocusId(BUTTON_ID)
         except Exception:
@@ -87,13 +106,7 @@ class SkipOverlay(xbmcgui.WindowXMLDialog):
     def _poll_loop(self):
         # close from worker thread using dialog.close builtin — kodi does not like gui from random threads otherwise
         mon = self._monitor if self._monitor is not None else xbmc.Monitor()
-        try:
-            pl = self._player
-            if pl and pl.isPlaying() and pl.getTime() >= self._intro_end:
-                self._close_from_bg_thread()
-                return
-        except Exception:
-            pass
+        # No immediate getTime check: playback advances while WindowXML loads; that race closed the dialog instantly.
         while True:
             with self._lock:
                 if self._closed:
@@ -141,7 +154,7 @@ def show_skip_overlay(callback=None, intro_end=None, player=None, monitor=None):
             'overlay.xml',
             ADDON_PATH,
             'default',
-            '1080i',
+            _OVERLAY_RES,
             callback=callback,
             intro_end=intro_end,
             player=player,
