@@ -18,11 +18,11 @@ Kodi service add-on that gets intro, recap, credits, and preview segments from *
 
 ### Option A: Add repository (automatic updates)
 
-1. In Kodi, go to **Settings → Add-ons → Install from zip file**.
-2. Download [repository.tidb.repo.zip](https://theintrodb.github.io/kodi-addon/repository.tidb.repo-2.0.0.zip) or add `https://theintrodb.github.io/kodi-addon/` as a source in the Kodi File Manager.
-3. Install the zip, then go to **Install from repository**.
-4. Open **TheIntroDB Kodi Addon Repo** and install **TheIntroDB Kodi Addon**.
-5. Allow third-party repository updates under **Settings → System → Add-ons** if you want automatic updates.
+1. Download [repository.tidb.repo.zip](https://theintrodb.github.io/kodi-addon/repository.tidb.repo-2.0.0.zip) or add `https://theintrodb.github.io/kodi-addon/` as a source in the Kodi File Manager.
+3. Install `repository.tidb.repo.zip` by selecting **Settings → Add-ons → Install from zip file** within Kodi.
+4. Go to **Settings → Add-ons → Install from Repository**.
+5. Open **TheIntroDB Kodi Addon Repo** and install **TheIntroDB Kodi Addon**.
+6. Allow third-party repository updates under **Settings → System → Add-ons** if you want automatic updates.
 
 ### Option B: Add-on zip only
 
