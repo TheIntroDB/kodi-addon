@@ -48,7 +48,7 @@ msgid "Enable preview skipping"
 msgstr ""
 
 msgctxt "#32010"
-msgid "Auto-skip segments (no button)"
+msgid "Auto-skip intro segments (no button)"
 msgstr ""
 
 msgctxt "#32011"
