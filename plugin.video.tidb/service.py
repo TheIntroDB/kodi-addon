@@ -17,7 +17,6 @@ STR_SKIP_INTRO = 32001
 STR_SKIP_RECAP = 32003
 STR_SKIP_CREDITS = 32004
 STR_SKIP_PREVIEW = 32005
-STR_NEXT_EPISODE = 32012
 
 
 class TIDBMonitor(xbmc.Monitor):
@@ -37,15 +36,6 @@ def _fresh_bool(key):
     except Exception:
         return ADDON.getSetting(key) == 'true'
 
-
-def _get_segment_type_settings():
-    """Get which segment types are enabled in settings."""
-    return {
-        'intro': _fresh_bool('enable_intro'),
-        'recap': _fresh_bool('enable_recap'),
-        'credits': _fresh_bool('enable_credits'),
-        'preview': _fresh_bool('enable_preview')
-    }
 
 def _run_service():
     monitor = TIDBMonitor()
@@ -160,6 +150,8 @@ def _run_service():
             xbmc.log('[TheIntroDB] Total enabled segments to process: {}'.format(len(all_enabled_segments)), xbmc.LOGINFO)
         
         processed_any = False
+        next_episode_info = None
+        next_episode_checked = False
         
         # Process segments in chronological order
         for segment_idx, segment in enumerate(all_enabled_segments):
@@ -177,8 +169,8 @@ def _run_service():
             if api_start is None:
                 api_start = 0
             
-            # Check if this is a credits/preview segment with null end (goes to very end)
-            is_next_episode_segment = (segment_type in ['credits', 'preview']) and (api_end is None)
+            # Credits/preview with a null end means "to the end of the episode".
+            is_next_episode_candidate = (segment_type in ['credits', 'preview']) and (api_end is None)
             
             if api_end is None:
                 # For credits/preview with null end, use total time
@@ -252,16 +244,22 @@ def _run_service():
                 'preview': ADDON.getLocalizedString(STR_SKIP_PREVIEW)
             }
             
-            # Determine if we should show next episode button instead of skip button
-            if is_next_episode_segment:
-                # This is credits/preview with null end - show next episode button
-                segment_type_for_overlay = 'next_episode'
-                segment_name = 'Next Episode'
-                xbmc.log('[TheIntroDB] Detected end-of-media segment ({} with null end) - showing Next Episode button'.format(segment_type), xbmc.LOGINFO)
-            else:
-                segment_type_for_overlay = segment_type
-                base_segment_name = segment_names.get(segment_type, segment_type.title())
-                segment_name = base_segment_name
+            segment_type_for_overlay = segment_type
+            segment_name = segment_names.get(segment_type, segment_type.title())
+            is_next_episode_segment = False
+
+            if is_next_episode_candidate:
+                if not next_episode_checked:
+                    next_episode_info = player.get_next_episode()
+                    next_episode_checked = True
+                if next_episode_info:
+                    is_next_episode_segment = True
+                    segment_type_for_overlay = 'next_episode'
+                    segment_name = overlay_mod.ADDON.getLocalizedString(overlay_mod.STR_NEXT_EPISODE)
+                    xbmc.log(
+                        '[TheIntroDB] Showing Next Episode for end-of-media {} segment'.format(segment_type),
+                        xbmc.LOGINFO,
+                    )
             
             # Handle auto-skip logic: only auto-skip intro segments
             if auto_skip and segment_type == 'intro':
@@ -271,7 +269,6 @@ def _run_service():
                 # Record that we auto-skipped this intro segment
                 _record_segment_processing(processed_segments, segment_key, current_time_after_wait, was_skipped=True)
             elif is_next_episode_segment:
-                # This is a next episode button - handle differently
                 if monitor.abortRequested():
                     break
                 xbmc.log('[TheIntroDB] Showing next episode overlay for {}'.format(segment_name), xbmc.LOGINFO)
@@ -281,16 +278,22 @@ def _run_service():
                     monitor=monitor,
                     segment_type=segment_type_for_overlay,
                     segment_index=segment_idx,
-                    callback=lambda: _trigger_next_episode()
                 )
                 if pressed:
                     xbmc.log('[TheIntroDB] User pressed Next Episode', xbmc.LOGINFO)
-                    _trigger_next_episode()
-                    # Record that user triggered next episode
-                    _record_segment_processing(processed_segments, segment_key, player.getTime() if player.isPlaying() else current_time_after_wait, was_skipped=True)
+                    was_opened = player.play_next_episode(next_episode_info)
+                    if was_opened:
+                        _debug_osd('Next Episode')
+                    else:
+                        xbmc.log('[TheIntroDB] Next episode was no longer available to open', xbmc.LOGWARNING)
+                    _record_segment_processing(
+                        processed_segments,
+                        segment_key,
+                        player.getTime() if player.isPlaying() else current_time_after_wait,
+                        was_skipped=was_opened,
+                    )
                 else:
                     xbmc.log('[TheIntroDB] User did NOT press Next Episode - continuing', xbmc.LOGINFO)
-                    # Record that user saw but didn't press next episode
                     _record_segment_processing(processed_segments, segment_key, player.getTime() if player.isPlaying() else current_time_after_wait, was_skipped=False)
             elif auto_skip and segment_type != 'intro':
                 # Auto-skip is enabled but this is not an intro segment - show skip button instead
@@ -363,7 +366,7 @@ def _playback_past_intro_end(player, api_end, margin=0.25):
         return True
 
 
-def _should_show_segment_button(processed_segments, segment_key, current_time, segment_start, segment_end, reentry_threshold=5.0):
+def _should_show_segment_button(processed_segments, segment_key, current_time, segment_start, _segment_end, reentry_threshold=5.0):
     """
     Determine if we should show a skip button for this segment.
     
@@ -426,19 +429,5 @@ def _wait_for_time(monitor, player, target_time):
             return
         if current >= target_time - 1:
             return
-
-
-def _trigger_next_episode():
-    """Trigger next episode playback using Kodi's built-in functionality."""
-    try:
-        xbmc.log('[TheIntroDB] Triggering next episode', xbmc.LOGINFO)
-        # Use Kodi's built-in next function
-        xbmc.executebuiltin('PlayerControl(Next)')
-        _debug_osd('Next Episode triggered')
-    except Exception as e:
-        xbmc.log('[TheIntroDB] Failed to trigger next episode: {}'.format(e), xbmc.LOGERROR)
-        _debug_osd('Next Episode failed')
-
-
 if __name__ == '__main__':
     _run_service()

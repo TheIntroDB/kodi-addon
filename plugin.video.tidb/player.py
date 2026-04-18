@@ -110,6 +110,78 @@ class TIDBPlayer(xbmc.Player):
         xbmc.log('[TheIntroDB] Extracted media IDs: {}'.format(ids), xbmc.LOGINFO)
         return ids
 
+    def get_next_episode(self):
+        item = self._get_current_player_item()
+        if not item or item.get('type') != 'episode':
+            return None
+
+        try:
+            tvshowid = int(item.get('tvshowid'))
+            current_season = int(item.get('season'))
+            current_episode = int(item.get('episode'))
+        except (TypeError, ValueError):
+            return None
+
+        response = self._jsonrpc('VideoLibrary.GetEpisodes', {
+            'tvshowid': tvshowid,
+            'properties': ['season', 'episode', 'title'],
+            'sort': {'method': 'episode', 'order': 'ascending'},
+        })
+        episodes = (response or {}).get('result', {}).get('episodes') or []
+        current_key = (current_season, current_episode)
+        next_episode = None
+        next_key = None
+
+        for episode in episodes:
+            episodeid = episode.get('episodeid')
+            try:
+                season = int(episode.get('season'))
+                number = int(episode.get('episode'))
+            except (TypeError, ValueError):
+                continue
+            if not episodeid:
+                continue
+
+            episode_key = (season, number)
+            if episode_key <= current_key:
+                continue
+            if next_key is None or episode_key < next_key:
+                next_key = episode_key
+                next_episode = {
+                    'episodeid': int(episodeid),
+                    'season': season,
+                    'episode': number,
+                    'title': episode.get('title') or '',
+                }
+
+        if next_episode and ADDON.getSetting('debug_logging') == 'true':
+            xbmc.log(
+                '[TheIntroDB] Next episode found: S{}E{} {}'.format(
+                    next_episode['season'],
+                    next_episode['episode'],
+                    next_episode['title'],
+                ),
+                xbmc.LOGINFO,
+            )
+
+        return next_episode
+
+    def play_next_episode(self, next_episode=None):
+        if next_episode is None:
+            next_episode = self.get_next_episode()
+        if not next_episode:
+            return False
+
+        response = self._jsonrpc('Player.Open', {
+            'item': {'episodeid': next_episode['episodeid']},
+        })
+        if response and 'error' not in response:
+            return True
+
+        if ADDON.getSetting('debug_logging') == 'true':
+            xbmc.log('[TheIntroDB] Failed to open next episode: {}'.format(response), xbmc.LOGWARNING)
+        return False
+
     def _active_video_player_id(self):
         try:
             r = json.loads(xbmc.executeJSONRPC(
@@ -123,6 +195,15 @@ class TIDBPlayer(xbmc.Player):
         except Exception:
             pass
         return 1
+
+    def _get_current_player_item(self):
+        response = self._jsonrpc('Player.GetItem', {
+            'playerid': self._active_video_player_id(),
+            'properties': [
+                'id', 'tvshowid', 'season', 'episode', 'showtitle', 'title', 'type',
+            ],
+        })
+        return (response or {}).get('result', {}).get('item') or {}
 
     def _jsonrpc(self, method, params=None):
         try:
