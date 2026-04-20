@@ -50,7 +50,6 @@
                 <texturefocus colordiffuse="FFFFFFFF" border="12">rounded_rect.png</texturefocus>
                 <texturenofocus colordiffuse="FFF8F8F8" border="12">rounded_rect.png</texturenofocus>
                 <label>Skip intro</label>
-                <onclick>SetFocus(3001)</onclick>
             </control>
         </control>
     </controls>

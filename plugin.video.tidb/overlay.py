@@ -1,6 +1,7 @@
 # skip intro button windowxml — background thread closes when playhead passes intro end
 import os
 import threading
+import time
 import xbmc
 import xbmcgui
 import xbmcaddon
@@ -24,12 +25,12 @@ STR_NEXT_EPISODE = 32012
 OVERLAY_WINDOW_ID = 14000
 
 ACTION_SELECT = 7
-ACTION_MOUSE_LEFT_CLICK = 100
 ACTION_PREVIOUS_MENU = 10
 ACTION_BACK = 92
 BUTTON_ID = 3001
 
 _POLL_INTERVAL = 0.5
+_DISPLAY_DURATION = 5.0
 
 
 def _rounded_rect_texture_path():
@@ -57,13 +58,14 @@ class SkipOverlay(xbmcgui.WindowXMLDialog):
         self._lock = threading.Lock()
         self._segment_type = segment_type
         self._segment_index = segment_index
+        self._display_deadline = None
 
     @property
     def skip_pressed(self):
         return self._skip_pressed
 
-    def _get_segment_button_text(self, segment_type, segment_index=0):
-        """Get the appropriate button text for the segment type and index."""
+    def _get_segment_button_text(self, segment_type):
+        """Get the appropriate button text for the segment type."""
         segment_texts = {
             'intro': ADDON.getLocalizedString(STR_SKIP_INTRO),
             'recap': ADDON.getLocalizedString(STR_SKIP_RECAP),
@@ -91,7 +93,7 @@ class SkipOverlay(xbmcgui.WindowXMLDialog):
         
         # Set dynamic button text based on segment type
         try:
-            button_text = self._get_segment_button_text(self._segment_type, self._segment_index)
+            button_text = self._get_segment_button_text(self._segment_type)
             button_control = self.getControl(BUTTON_ID)
             if button_control:
                 button_control.setLabel(button_text)
@@ -103,6 +105,7 @@ class SkipOverlay(xbmcgui.WindowXMLDialog):
         except Exception:
             pass
         if self._intro_end is not None and self._player is not None:
+            self._display_deadline = time.time() + _DISPLAY_DURATION
             self._poll_thread = threading.Thread(target=self._poll_loop)
             self._poll_thread.daemon = True
             self._poll_thread.start()
@@ -113,7 +116,7 @@ class SkipOverlay(xbmcgui.WindowXMLDialog):
 
     def onAction(self, action):
         aid = action.getId()
-        if aid in (ACTION_SELECT, ACTION_MOUSE_LEFT_CLICK):
+        if aid == ACTION_SELECT:
             try:
                 if self.getFocusId() == BUTTON_ID:
                     self._do_skip()
@@ -152,7 +155,15 @@ class SkipOverlay(xbmcgui.WindowXMLDialog):
                 return
             try:
                 pl = self._player
-                if pl and pl.isPlaying() and pl.getTime() >= self._intro_end:
+                if self._display_deadline is not None and time.time() >= self._display_deadline:
+                    self._close_from_bg_thread()
+                    return
+                if pl and pl.isPlaying():
+                    current_time = pl.getTime()
+                    if current_time >= self._intro_end:
+                        self._close_from_bg_thread()
+                        return
+                elif pl and not pl.isPlaying():
                     self._close_from_bg_thread()
                     return
             except Exception:
@@ -163,7 +174,10 @@ class SkipOverlay(xbmcgui.WindowXMLDialog):
             if self._closed:
                 return
             self._closed = True
-        xbmc.executebuiltin('Dialog.Close({},{})'.format(OVERLAY_WINDOW_ID, 'true'))
+        try:
+            self.close()
+        except Exception as e:
+            xbmc.log('[TheIntroDB] Overlay close failed: {}'.format(e), xbmc.LOGWARNING)
 
     def _stop_poll_thread(self):
         with self._lock:

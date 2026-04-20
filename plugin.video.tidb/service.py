@@ -1,5 +1,4 @@
 # kodi service entry: poll playback, query theintrodb, show skip ui or auto-seek
-import time
 import xbmc
 import xbmcaddon
 
@@ -43,18 +42,24 @@ def _run_service():
 
     xbmc.log('[TheIntroDB] Service started', xbmc.LOGINFO)
 
-    # which file we already finished intro handling for; cleared when playback stops
-    last_file = None
-    # track which segments have been processed and their skip state
+    current_file = None
+    cached_media_ids = None
+    cached_all_segments = None
     processed_segments = {}
+    next_episode_info = None
+    next_episode_checked = False
 
     while not monitor.abortRequested():
         if monitor.waitForAbort(1.0):
             break
 
         if not player.playback_started:
-            last_file = None
-            processed_segments.clear()  # Clear segment tracking when playback stops
+            current_file = None
+            cached_media_ids = None
+            cached_all_segments = None
+            processed_segments.clear()
+            next_episode_info = None
+            next_episode_checked = False
             continue
 
         # skip movies that do not look like tv; player decides
@@ -65,14 +70,14 @@ def _run_service():
         if not filename:
             continue
 
-        # same file as last successful pass — do not run again
-        if filename == last_file:
-            continue
-            
-        # Clear segment tracking when switching to a new file
-        if last_file is not None and filename != last_file:
+        if filename != current_file:
+            current_file = filename
+            cached_media_ids = None
+            cached_all_segments = None
             processed_segments.clear()
-            xbmc.log('[TheIntroDB] Cleared segment tracking for new file: {}'.format(filename), xbmc.LOGINFO)
+            next_episode_info = None
+            next_episode_checked = False
+            xbmc.log('[TheIntroDB] Reset segment tracking for file: {}'.format(filename), xbmc.LOGINFO)
 
         _debug_osd('Monitoring: {}'.format(filename[-40:]))
 
@@ -86,7 +91,9 @@ def _run_service():
                 xbmc.LOGINFO,
             )
 
-        media_ids = player.get_media_ids()
+        if cached_media_ids is None:
+            cached_media_ids = player.get_media_ids()
+        media_ids = cached_media_ids
         tmdb = media_ids.get('tmdb_id')
         imdb = media_ids.get('imdb_id')
         m_season = media_ids.get('season')
@@ -99,15 +106,16 @@ def _run_service():
             tmdb or '-', imdb or '-', m_season or '?', m_episode or '?'))
 
         all_segments = {}
-
         if introdb_on and (tmdb or imdb):
-            all_segments = introdb.query_all_segments(
-                tmdb_id=tmdb,
-                imdb_id=imdb,
-                season=m_season,
-                episode=m_episode,
-                is_movie=m_movie,
-            )
+            if cached_all_segments is None:
+                cached_all_segments = introdb.query_all_segments(
+                    tmdb_id=tmdb,
+                    imdb_id=imdb,
+                    season=m_season,
+                    episode=m_episode,
+                    is_movie=m_movie,
+                )
+            all_segments = cached_all_segments or {}
 
         # Collect all enabled segments from all types and sort them chronologically
         all_enabled_segments = []
@@ -148,11 +156,7 @@ def _run_service():
         # Log total enabled segments (only if debug logging is enabled)
         if ADDON.getSetting('debug_logging') == 'true':
             xbmc.log('[TheIntroDB] Total enabled segments to process: {}'.format(len(all_enabled_segments)), xbmc.LOGINFO)
-        
-        processed_any = False
-        next_episode_info = None
-        next_episode_checked = False
-        
+
         # Process segments in chronological order
         for segment_idx, segment in enumerate(all_enabled_segments):
             segment_type = segment['type']
@@ -189,52 +193,20 @@ def _run_service():
             xbmc.log('[TheIntroDB] {}'.format(msg), xbmc.LOGINFO)
             _debug_osd(msg)
 
-            # resume or seek landed past segment end — nothing to show
             current_time = player.getTime() if player.isPlaying() else 0
-            
+
             if ADDON.getSetting('debug_logging') == 'true':
                 xbmc.log('[TheIntroDB] Checking timing for {} segment {}: current={:.1f}s, start={:.1f}s, end={:.1f}s'.format(segment_type, segment_idx, current_time, api_start, api_end), xbmc.LOGINFO)
-            
-            # Check if we should show the button for this segment (handles reentry logic)
+
             if not _should_show_segment_button(processed_segments, segment_key, current_time, api_start, api_end):
                 if ADDON.getSetting('debug_logging') == 'true':
                     xbmc.log(
-                        '[TheIntroDB] Skipping {} button - already processed or not reentered'.format(segment_display_name),
+                        '[TheIntroDB] Skipping {} button - outside segment or already shown for this entry'.format(segment_display_name),
                         xbmc.LOGINFO,
                     )
-                processed_any = True
                 continue
-                
-            if _playback_past_intro_end(player, api_end):
-                if ADDON.getSetting('debug_logging') == 'true':
-                    xbmc.log(
-                        '[TheIntroDB] Already past {} window; skipping UI'.format(segment_display_name),
-                        xbmc.LOGINFO,
-                    )
-                processed_any = True
-                continue
-
-            # wait until roughly segment start so we do not pop the overlay at t=0
-            if ADDON.getSetting('debug_logging') == 'true':
-                xbmc.log('[TheIntroDB] Waiting for {} segment {} start time: {:.1f}s (current time: {:.1f}s)'.format(segment_type, segment_idx, api_start, player.getTime() if player.isPlaying() else 'N/A'), xbmc.LOGINFO)
-            _wait_for_time(monitor, player, api_start)
-            
-            # Re-check current time after waiting, as skipping previous segments may have changed position
-            current_time_after_wait = player.getTime() if player.isPlaying() else 0
-            if ADDON.getSetting('debug_logging') == 'true':
-                xbmc.log('[TheIntroDB] Finished waiting for {} segment {} (current time: {:.1f}s)'.format(segment_type, segment_idx, current_time_after_wait), xbmc.LOGINFO)
 
             if not player.isPlaying():
-                processed_any = True
-                continue
-
-            # Re-check if we're past the segment end after waiting (and potentially skipping previous segments)
-            if current_time_after_wait >= (api_end - 0.25):
-                xbmc.log(
-                    '[TheIntroDB] Past {} end after wait; skipping UI (current: {:.1f}s, end: {:.1f}s)'.format(segment_display_name, current_time_after_wait, api_end),
-                    xbmc.LOGINFO,
-                )
-                processed_any = True
                 continue
 
             segment_names = {
@@ -266,8 +238,6 @@ def _run_service():
                 skipper.execute_skip(player, api_start, api_end, filename, segment_type)
                 _debug_osd('Auto-skipped {}'.format(segment_name))
                 xbmc.log('[TheIntroDB] Auto-skipped {} to {:.1f}s'.format(segment_name, api_end), xbmc.LOGINFO)
-                # Record that we auto-skipped this intro segment
-                _record_segment_processing(processed_segments, segment_key, current_time_after_wait, was_skipped=True)
             elif is_next_episode_segment:
                 if monitor.abortRequested():
                     break
@@ -286,15 +256,8 @@ def _run_service():
                         _debug_osd('Next Episode')
                     else:
                         xbmc.log('[TheIntroDB] Next episode was no longer available to open', xbmc.LOGWARNING)
-                    _record_segment_processing(
-                        processed_segments,
-                        segment_key,
-                        player.getTime() if player.isPlaying() else current_time_after_wait,
-                        was_skipped=was_opened,
-                    )
                 else:
                     xbmc.log('[TheIntroDB] User did NOT press Next Episode - continuing', xbmc.LOGINFO)
-                    _record_segment_processing(processed_segments, segment_key, player.getTime() if player.isPlaying() else current_time_after_wait, was_skipped=False)
             elif auto_skip and segment_type != 'intro':
                 # Auto-skip is enabled but this is not an intro segment - show skip button instead
                 if monitor.abortRequested():
@@ -311,12 +274,8 @@ def _run_service():
                     xbmc.log('[TheIntroDB] User pressed Skip {}'.format(segment_name), xbmc.LOGINFO)
                     skipper.execute_skip(player, api_start, api_end, filename, segment_type)
                     _debug_osd('Skipped {} to {:.1f}s'.format(segment_name, api_end))
-                    # Record that user skipped this segment
-                    _record_segment_processing(processed_segments, segment_key, player.getTime() if player.isPlaying() else current_time_after_wait, was_skipped=True)
                 else:
                     xbmc.log('[TheIntroDB] User did NOT skip {} - continuing to next segment'.format(segment_name), xbmc.LOGINFO)
-                    # Record that user saw but didn't skip this segment
-                    _record_segment_processing(processed_segments, segment_key, player.getTime() if player.isPlaying() else current_time_after_wait, was_skipped=False)
             else:
                 # Auto-skip is disabled - show skip button for all segments
                 if monitor.abortRequested():
@@ -333,101 +292,50 @@ def _run_service():
                     xbmc.log('[TheIntroDB] User pressed Skip {}'.format(segment_name), xbmc.LOGINFO)
                     skipper.execute_skip(player, api_start, api_end, filename, segment_type)
                     _debug_osd('Skipped {} to {:.1f}s'.format(segment_name, api_end))
-                    # Record that user skipped this segment
-                    _record_segment_processing(processed_segments, segment_key, player.getTime() if player.isPlaying() else current_time_after_wait, was_skipped=True)
-                    # Continue processing remaining segments - don't break here
-                    # This allows other segment types to show their buttons independently
                 else:
                     xbmc.log('[TheIntroDB] User did NOT skip {} - continuing to next segment'.format(segment_name), xbmc.LOGINFO)
-                    # Record that user saw but didn't skip this segment
-                    _record_segment_processing(processed_segments, segment_key, player.getTime() if player.isPlaying() else current_time_after_wait, was_skipped=False)
-            processed_any = True
-            
-        if processed_any:
-            last_file = filename
-            xbmc.log('[TheIntroDB] Marked file as processed: {}'.format(filename), xbmc.LOGINFO)
-        else:
-            if introdb_on:
-                if tmdb or imdb:
-                    _debug_osd('TheIntroDB: no segments for this item')
-                else:
-                    _debug_osd('No TMDB or IMDb id')
-            last_file = filename
 
     xbmc.log('[TheIntroDB] Service stopped', xbmc.LOGINFO)
 
 
-def _playback_past_intro_end(player, api_end, margin=0.25):
-    try:
-        if not player.isPlaying():
-            return True
-        return player.getTime() >= (api_end - margin)
-    except Exception:
-        return True
-
-
-def _should_show_segment_button(processed_segments, segment_key, current_time, segment_start, _segment_end, reentry_threshold=5.0):
+def _should_show_segment_button(processed_segments, segment_key, current_time, segment_start, segment_end, margin=0.25):
     """
-    Determine if we should show a skip button for this segment.
-    
-    Args:
-        processed_segments: Dictionary tracking processed segments
-        segment_key: Unique key for this segment (type + index)
-        current_time: Current playback time
-        segment_start: Segment start time
-        segment_end: Segment end time
-        reentry_threshold: Time threshold (seconds) for reentry detection
-    
-    Returns:
-        bool: True if button should be shown
+    Show the skip button once per segment entry.
+
+    If playback exits a segment and later re-enters it, including by seeking into
+    the middle of the segment, the next entry gets a fresh 5 second overlay.
     """
-    # If we've never processed this segment, show the button
-    if segment_key not in processed_segments:
-        return True
-    
-    # Get previous processing info
-    prev_info = processed_segments[segment_key]
-    prev_skipped = prev_info.get('skipped', False)
-    prev_time = prev_info.get('last_time', 0)
-    
-    # If user previously skipped this segment, don't show again unless they rewound
-    if prev_skipped:
-        # Check if user rewound back into the segment
-        if current_time < prev_time - reentry_threshold:
-            if ADDON.getSetting('debug_logging') == 'true':
-                xbmc.log('[TheIntroDB] Reentry detected for {}: current={:.1f}s < prev={:.1f}s'.format(
-                    segment_key, current_time, prev_time), xbmc.LOGINFO)
-            return True
+    state = processed_segments.setdefault(segment_key, {
+        'inside': False,
+        'shown_for_entry': False,
+        'last_time': None,
+    })
+
+    inside_segment = segment_start <= current_time < (segment_end - margin)
+    previous_time = state.get('last_time')
+
+    if not inside_segment:
+        state['inside'] = False
+        state['shown_for_entry'] = False
+        state['last_time'] = current_time
         return False
-    
-    # If user didn't skip before, show button again when reentering
-    if current_time < segment_start + reentry_threshold:
-        return True
-    
-    return False
 
+    reentered = (not state['inside'])
+    if previous_time is not None and current_time + margin < previous_time:
+        reentered = True
 
-def _record_segment_processing(processed_segments, segment_key, current_time, was_skipped=False):
-    """Record that we've processed this segment."""
-    processed_segments[segment_key] = {
-        'last_time': current_time,
-        'skipped': was_skipped,
-        'processed_at': time.time()
-    }
+    if reentered:
+        if ADDON.getSetting('debug_logging') == 'true':
+            xbmc.log('[TheIntroDB] Entry detected for {} at {:.1f}s'.format(segment_key, current_time), xbmc.LOGINFO)
+        state['shown_for_entry'] = False
 
+    state['inside'] = True
+    state['last_time'] = current_time
 
-def _wait_for_time(monitor, player, target_time):
-    # spin until intro start is near, or playback stops
-    while not monitor.abortRequested():
-        if monitor.waitForAbort(0.5):
-            return
-        if not player.isPlaying():
-            return
-        try:
-            current = player.getTime()
-        except Exception:
-            return
-        if current >= target_time - 1:
-            return
+    if state['shown_for_entry']:
+        return False
+
+    state['shown_for_entry'] = True
+    return True
 if __name__ == '__main__':
     _run_service()
