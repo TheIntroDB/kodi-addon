@@ -2,6 +2,7 @@
 <settings>
     <category label="$ADDON[plugin.video.tidb 32025]">
         <setting id="skip_offset" type="number" label="$ADDON[plugin.video.tidb 32011]" default="2"/>
+        <setting id="button_display_seconds" type="number" label="$ADDON[plugin.video.tidb 32040]" default="0"/>
     </category>
     <category label="$ADDON[plugin.video.tidb 32026]">
         <setting id="enable_intro" type="bool" label="$ADDON[plugin.video.tidb 32006]" default="true"/>

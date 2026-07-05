@@ -130,3 +130,7 @@ msgstr ""
 msgctxt "#32039"
 msgid "Auto-skip preview segments"
 msgstr ""
+
+msgctxt "#32040"
+msgid "Hide skip button after (seconds, 0 = keep until segment ends)"
+msgstr ""

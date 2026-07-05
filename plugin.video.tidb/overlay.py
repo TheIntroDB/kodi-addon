@@ -46,7 +46,7 @@ BUTTON_ID = 3001
 _POLL_INTERVAL = 0.5
 _START_POLL_INTERVAL = 0.25
 _CLOCK_ADVANCE_EPSILON = 0.05
-_DISPLAY_DURATION = 5.0
+_DEFAULT_DISPLAY_SECONDS = 0  # 0 = keep until segment ends; users can override via General setting 'button_display_seconds'
 
 
 def _rounded_rect_texture_path() -> str:
@@ -125,7 +125,15 @@ class SkipOverlay(xbmcgui.WindowXMLDialog):
         except Exception:
             pass
         if self._intro_end is not None and self._player is not None:
-            self._display_deadline = time.time() + _DISPLAY_DURATION
+            # Read configurable display duration (0 = keep until segment ends)
+            try:
+                display_secs = int(ADDON.getSetting('button_display_seconds'))
+            except (ValueError, TypeError):
+                display_secs = _DEFAULT_DISPLAY_SECONDS
+            if display_secs > 0:
+                self._display_deadline = time.time() + display_secs
+            else:
+                self._display_deadline = None  # keep until segment ends
             self._poll_thread = threading.Thread(target=self._poll_loop)
             self._poll_thread.daemon = True
             self._poll_thread.start()
