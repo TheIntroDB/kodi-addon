@@ -56,7 +56,7 @@ TheIntroDB Kodi Addon includes a few settings to adjust behavior:
 - **Auto-skip**: Skip without showing the button
 - **Extra seconds after segment end**: Adds a small offset to the skip target
 - **Enable lookups**: Turns TheIntroDB requests on or off
-- **API key**: Lets you use your TheIntroDB API key if required
+- **API key**: Lets you use your TheIntroDB API key.
 - **Debug options**: Enables verbose logging and on-screen notifications
 
 ---
