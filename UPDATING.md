@@ -5,5 +5,6 @@
 3. Run `md5 -q addons.xml > addons.xml.md5` (for the root manifest)
 4. Zip the plugin.video.tidb folder and rename it to `plugin.video.tidb-[version].zip`
 5. Move the zip file to the /docs folder and update index.html with the new version
+6. Update the download links in README.md (Option A repo zip and Option B add-on zip) to the new version
 
 Kodi will detect a version difference in the addons.xml file and prompt you to update the addon. It pulls from the github pages URL to download the latest version of the addon.
