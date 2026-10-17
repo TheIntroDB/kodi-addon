@@ -616,6 +616,7 @@ def submit_segment(tmdb_id: Optional[Union[str, int]] = None, imdb_id: Optional[
                 return True, 'Submitted! Status: {}'.format(status)
         return True, 'Submitted successfully.'
     except HTTPError as e:
+        err_body = ''
         try:
             err_body = e.read().decode('utf-8')
             err_data = json.loads(err_body)
@@ -623,15 +624,9 @@ def submit_segment(tmdb_id: Optional[Union[str, int]] = None, imdb_id: Optional[
         except Exception:
             err_msg = 'HTTP {}'.format(e.code)
         if e.code == 429:
-            retry = 300
-            for header in ('X-UsageLimit-Reset', 'X-RateLimit-Reset', 'Retry-After'):
-                val = e.headers.get(header)
-                if val:
-                    try:
-                        retry = int(val)
-                    except ValueError:
-                        pass
-                    break
+            # Same bounded parsing as the lookup path: this budget is shared, so
+            # one oversized or epoch-stated reset must not silence lookups too.
+            retry = _retry_after_seconds(e, err_body)
             with _rate_limit_lock:
                 _rate_limit_until = time.time() + retry
         xbmc.log('[TheIntroDB] Submit failed: {}'.format(err_msg), xbmc.LOGWARNING)

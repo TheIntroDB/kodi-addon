@@ -9,6 +9,7 @@ addon module is imported.
 import json
 import os
 import sys
+import time
 import types
 import unittest
 from email.message import Message
@@ -206,6 +207,44 @@ class ApiKeyProbeTests(unittest.TestCase):
         valid, message = introdb.test_api_key()
         self.assertFalse(valid)
         self.assertIn('404', message)
+
+
+class Submit429Tests(unittest.TestCase):
+    """A submission's 429 shares the lookup budget, so it must be bounded too."""
+
+    def setUp(self):
+        self._original_urlopen = introdb.urlopen
+        self._original_wait = introdb._wait_rate_limit
+        introdb._wait_rate_limit = lambda: True
+        introdb._rate_limit_until = 0.0
+        _SETTINGS['introdb_api_key'] = 'theintrodb:user_1:secret'
+
+    def tearDown(self):
+        introdb.urlopen = self._original_urlopen
+        introdb._wait_rate_limit = self._original_wait
+        introdb._rate_limit_until = 0.0
+        _SETTINGS.pop('introdb_api_key', None)
+
+    def _submit(self, headers, body=''):
+        def fake(request, timeout=None):
+            raise _HttpError(429, headers, body)
+
+        introdb.urlopen = fake
+        ok, _message = introdb.submit_segment(
+            tvdb_id=169, is_movie=True, segment='intro', start_sec=30, end_sec=90)
+        self.assertFalse(ok)
+        return introdb._rate_limit_until - time.time()
+
+    def test_daily_budget_reset_is_trusted(self):
+        body = json.dumps({'error': 'Usage limit exceeded', 'code': 'usage_limit_exceeded'})
+        remaining = self._submit(_headers(X_UsageLimit_Reset=49000, Retry_After=49000), body)
+        self.assertGreater(remaining, 48000)
+        self.assertLess(remaining, 49001)
+
+    def test_burst_reset_is_clamped_and_never_lands_in_the_past(self):
+        remaining = self._submit(_headers(X_RateLimit_Reset=999999))
+        self.assertGreater(remaining, 0)
+        self.assertLessEqual(remaining, introdb.RATE_RESET_CLAMP)
 
 
 if __name__ == '__main__':
