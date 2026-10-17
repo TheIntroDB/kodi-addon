@@ -380,6 +380,8 @@ def _mark_end_and_submit(session: PlaybackSession, player: TIDBPlayer, monitor: 
     success, msg = introdb.submit_segment(
         tmdb_id=media_ids.get('tmdb_id'),
         imdb_id=media_ids.get('imdb_id'),
+        tvdb_id=media_ids.get('tvdb_id'),
+        tvdb_episode_id=media_ids.get('tvdb_episode_id'),
         season=media_ids.get('season'),
         episode=media_ids.get('episode'),
         is_movie=media_ids.get('is_movie', False),
@@ -447,11 +449,13 @@ def _run_service() -> None:
         # ── Fetch media IDs (cached) ──
         if session.media_ids is None:
             session.media_ids = player.get_media_ids()
-            xbmc.log('[TheIntroDB] Media IDs: tmdb={} imdb={} S{}E{} movie={}'.format(
+            xbmc.log('[TheIntroDB] Media IDs: tvdb={} tvdb_ep={} tmdb={} imdb={} S{}E{} movie={}'.format(
+                session.media_ids.get('tvdb_id'), session.media_ids.get('tvdb_episode_id'),
                 session.media_ids.get('tmdb_id'), session.media_ids.get('imdb_id'),
                 session.media_ids.get('season'), session.media_ids.get('episode'),
                 session.media_ids.get('is_movie', False)), xbmc.LOGINFO)
         media_ids = session.media_ids
+        tvdb = media_ids.get('tvdb_id')
         tmdb = media_ids.get('tmdb_id')
         imdb = media_ids.get('imdb_id')
         m_season = media_ids.get('season')
@@ -466,9 +470,11 @@ def _run_service() -> None:
 
         # ── Fetch segments (cached) ──
         all_segments = {}
-        if introdb_on and (tmdb or imdb):
+        if introdb_on and (tvdb or tmdb or imdb):
             if session.all_segments is None:
                 session.all_segments = introdb.query_all_segments(
+                    tvdb_id=tvdb,
+                    tvdb_episode_id=media_ids.get('tvdb_episode_id'),
                     tmdb_id=tmdb, imdb_id=imdb,
                     season=m_season, episode=m_episode, is_movie=m_movie,
                     duration_ms=media_ids.get('duration_ms'),
