@@ -123,6 +123,8 @@ class TIDBPlayer(xbmc.Player):
         ids: Dict[str, Any] = {
             'imdb_id': None,
             'tmdb_id': None,
+            'tvdb_id': None,
+            'tvdb_episode_id': None,
             'season': None,
             'episode': None,
             'is_movie': False,
@@ -132,6 +134,12 @@ class TIDBPlayer(xbmc.Player):
         self._ids_from_jsonrpc(ids)
         self._ids_from_infotag(ids)
         ids['duration_ms'] = self._get_video_duration_ms()
+
+        # Which id lands on an episode depends on the scraper: some store the
+        # episode record, others repeat the series id. Only a distinct one is a
+        # useful pin — sent as tvdb_id the API would look for a series by it.
+        if ids.get('tvdb_episode_id') and ids['tvdb_episode_id'] == ids.get('tvdb_id'):
+            ids['tvdb_episode_id'] = None
 
         xbmc.log('[TheIntroDB] Extracted media IDs: {}'.format(ids), xbmc.LOGINFO)
         return ids
@@ -316,6 +324,15 @@ class TIDBPlayer(xbmc.Player):
             if imdb_val and str(imdb_val).startswith('tt'):
                 ids['imdb_id'] = str(imdb_val)
 
+        if not ids.get('tvdb_id'):
+            tvdb_val = unique.get('tvdb') or unique.get('thetvdb')
+            if tvdb_val:
+                try:
+                    if int(tvdb_val) > 0:
+                        ids['tvdb_id'] = str(tvdb_val)
+                except (ValueError, TypeError):
+                    pass
+
         if not ids.get('tmdb_id'):
             tmdb_show = unique.get('tmdbshow') or unique.get('tmdb_show')
             if tmdb_show:
@@ -343,6 +360,26 @@ class TIDBPlayer(xbmc.Player):
             if imdb_val and str(imdb_val).startswith('tt'):
                 ids['imdb_id'] = str(imdb_val)
 
+        # On an episode, the TVDB scraper's `tvdb` uniqueid is the episode record
+        # (the series id arrives with the show's own uniqueid below).
+        if not ids.get('tvdb_episode_id'):
+            tvdb_val = unique.get('tvdb')
+            if tvdb_val:
+                try:
+                    if int(tvdb_val) > 0:
+                        ids['tvdb_episode_id'] = str(tvdb_val)
+                except (ValueError, TypeError):
+                    pass
+
+        if not ids.get('tvdb_id'):
+            tvdb_show = unique.get('tvdbshow') or unique.get('tvdb_show')
+            if tvdb_show:
+                try:
+                    if int(tvdb_show) > 0:
+                        ids['tvdb_id'] = str(tvdb_show)
+                except (ValueError, TypeError):
+                    pass
+
     def _tvshow_ids_from_library(self, tvshowid: Any, ids: Dict[str, Any], force_tmdb: bool = False) -> None:
         try:
             tvshowid_int = int(tvshowid)
@@ -367,6 +404,15 @@ class TIDBPlayer(xbmc.Player):
             imdb_unique = (unique or {}).get('imdb') if isinstance(unique, dict) else None
             if imdb_unique and str(imdb_unique).startswith('tt'):
                 ids['imdb_id'] = str(imdb_unique)
+
+        if not ids.get('tvdb_id'):
+            tvdb_unique = (unique or {}).get('tvdb') if isinstance(unique, dict) else None
+            if tvdb_unique:
+                try:
+                    if int(tvdb_unique) > 0:
+                        ids['tvdb_id'] = str(tvdb_unique)
+                except (ValueError, TypeError):
+                    pass
 
         imdbnumber = details.get('imdbnumber')
         if imdbnumber and str(imdbnumber).startswith('tt') and not ids.get('imdb_id'):
@@ -405,6 +451,15 @@ class TIDBPlayer(xbmc.Player):
             imdb_unique = (unique or {}).get('imdb') if isinstance(unique, dict) else None
             if imdb_unique and str(imdb_unique).startswith('tt'):
                 ids['imdb_id'] = str(imdb_unique)
+
+        if not ids.get('tvdb_id'):
+            tvdb_unique = (unique or {}).get('tvdb') if isinstance(unique, dict) else None
+            if tvdb_unique:
+                try:
+                    if int(tvdb_unique) > 0:
+                        ids['tvdb_id'] = str(tvdb_unique)
+                except (ValueError, TypeError):
+                    pass
 
         imdbnumber = pick.get('imdbnumber')
         if imdbnumber and str(imdbnumber).startswith('tt') and not ids.get('imdb_id'):
@@ -464,6 +519,44 @@ class TIDBPlayer(xbmc.Player):
                     ids['imdb_id'] = str(imdb)
             except Exception:
                 pass
+
+        # TVDB is the API's identity, so the id is worth collecting even when a
+        # TMDB one exists. On an episode tag `tvdb` is the episode record and the
+        # series id lives on the show (tvdb_show / tvdbshow) — the two are told
+        # apart by the media type, and get_media_ids drops the episode id when a
+        # scraper repeated the series id on it.
+        try:
+            media_type = tag.getMediaType()
+        except Exception:
+            media_type = None
+
+        try:
+            tvdb = tag.getUniqueID('tvdb')
+            if tvdb and not str(tvdb).startswith('tt'):
+                val = str(tvdb)
+                if int(val) > 0:
+                    if media_type == 'movie':
+                        if not ids.get('tvdb_id'):
+                            ids['tvdb_id'] = val
+                    elif not ids.get('tvdb_episode_id'):
+                        ids['tvdb_episode_id'] = val
+        except Exception:
+            pass
+
+        if not ids.get('tvdb_id'):
+            for key in ('tvdb_show', 'tvdbshow'):
+                try:
+                    tvdb_show = tag.getUniqueID(key)
+                except Exception:
+                    tvdb_show = None
+                if not tvdb_show:
+                    continue
+                try:
+                    if int(str(tvdb_show)) > 0:
+                        ids['tvdb_id'] = str(tvdb_show)
+                        break
+                except (ValueError, TypeError):
+                    continue
 
         if not ids['tmdb_id']:
             try:

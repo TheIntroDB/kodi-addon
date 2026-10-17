@@ -6,9 +6,9 @@
 
 Kodi service add-on that gets intro, recap, credits, and preview segments from **[TheIntroDB](https://theintrodb.org)** for movies and TV shows and shows a skip button or auto skips for you!
 
-**Requirements:** Kodi 19+. **TMDb metadata is recommended** for best accuracy. IMDb works as a fallback for supported items.
+**Requirements:** Kodi 19+. **TVDB metadata is recommended**: TVDB is the API's identity, so it is what the add-on asks with first (TMDB, then IMDb, are fallbacks).
 
-**Important:** Lookups happen when playback starts. If the current item does not expose a usable **TMDb** or **IMDb** ID, the add-on cannot match it with TheIntroDB.
+**Important:** Lookups happen when playback starts. If the current item does not expose a usable **TVDB**, **TMDb** or **IMDb** ID, the add-on cannot match it with TheIntroDB.
 
 **Troubleshooting (no skip button):** See the Metadata Requirements and Installation sections below.
 
@@ -39,13 +39,17 @@ Kodi service add-on that gets intro, recap, credits, and preview segments from *
 
 ### Metadata Requirements
 
-**TMDB is recommended.** The add-on prefers TMDB IDs for matching. If TMDB is unavailable, it can fall back to IMDb `tt...` IDs.
+**TVDB is recommended.** TVDB is TheIntroDB's identity, so it is what the add-on asks with first; **TMDB** is next, then **IMDb** `tt...`. When the item exposes several, the add-on uses the best one and falls back to the others if the first finds nothing.
+
+Alongside the id, an episode's own **TVDB episode id** is sent when Kodi has one, which pins the exact episode instead of trusting the numbering.
 
 For TV episodes, the playing item also needs valid **season** and **episode** numbers. If your source add-on or library does not expose provider IDs, TheIntroDB cannot match the item.
 
+Known limitation: for a series whose episode numbers follow a release order rather than TVDB's default (streaming rips, absolute-numbered anime, some specials), a lookup addressed only by **TMDB** can miss content that is stored under another numbering. Kodi items carrying a TVDB id resolve exactly; for the others, passing season/episode as the release numbers them is all the add-on can do.
+
 ## How It Works
 
-On each new playback, the add-on reads what Kodi exposes for the current item through JSON-RPC `Player.GetItem` and `VideoInfoTag`: **TMDb ID** when available, otherwise **IMDb** `tt...` ID, plus **season** and **episode** for TV content.
+On each new playback, the add-on reads what Kodi exposes for the current item through JSON-RPC `Player.GetItem` and `VideoInfoTag`: **TVDB ID** when available, otherwise **TMDb ID**, otherwise **IMDb** `tt...` ID, plus **season**, **episode** and (for episodes) the **TVDB episode ID**.
 
 It then calls TheIntroDB, retrieves segment **start** and **end** times, waits until the segment window begins, and either shows the skip overlay or seeks automatically depending on your settings.
 
