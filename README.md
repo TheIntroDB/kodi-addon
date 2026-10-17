@@ -41,11 +41,11 @@ Kodi service add-on that gets intro, recap, credits, and preview segments from *
 
 **TVDB is recommended.** TVDB is TheIntroDB's identity, so it is what the add-on asks with first; **TMDB** is next, then **IMDb** `tt...`. When the item exposes several, the add-on uses the best one and falls back to the others if the first finds nothing.
 
-Alongside the id, an episode's own **TVDB episode id** is sent when Kodi has one, which pins the exact episode instead of trusting the numbering.
+Alongside the id, an episode's own **TVDB episode id** is sent when Kodi has one. It is the add-on's way of saying which exact episode record it means; note that the API currently answers `/media` from the season/episode numbers rather than that id (measured 2026-10-17: a pinned id naming a different episode than the numbers returns the *numbers'* episode), so the numbering is still what decides the answer. The id is sent for when that precedence is honoured.
 
 For TV episodes, the playing item also needs valid **season** and **episode** numbers. If your source add-on or library does not expose provider IDs, TheIntroDB cannot match the item.
 
-Known limitation: for a series whose episode numbers follow a release order rather than TVDB's default (streaming rips, absolute-numbered anime, some specials), a lookup addressed only by **TMDB** can miss content that is stored under another numbering. Kodi items carrying a TVDB id resolve exactly; for the others, passing season/episode as the release numbers them is all the add-on can do.
+Known limitation: for a series whose episode numbers follow a release order rather than TVDB's default (streaming rips, absolute-numbered anime, some specials), a lookup is answered from the numbers as TVDB's *default* order, which can be a different episode than the one you are watching. Kodi does not expose which order its numbers came from, so the add-on cannot pass an order to convert; if your library is scraped in a non-default order, prefer a source that carries a TVDB id and check the result against the episode you are watching.
 
 ## How It Works
 
