@@ -22,15 +22,14 @@
 </addon>
 <addon id="plugin.video.tidb"
        name="TheIntroDB Kodi Addon"
-       version="1.8.2"
+       version="2.0.0"
        provider-name="TheIntroDB">
     <requires>
         <import addon="xbmc.python" version="3.0.1"/>
     </requires>
     <extension point="xbmc.service" library="service.py" start="startup"/>
-    <extension point="xbmc.python.script" library="test_api_key.py"/>
     <extension point="xbmc.addon.metadata">
-        <path>plugin.video.tidb-1.8.2.zip</path>
+        <path>plugin.video.tidb-2.0.0.zip</path>
         <summary lang="en_GB">Skip intro, recap, credits, and preview segments in movies and TV shows using TheIntroDB</summary>
         <summary lang="zh_CN">基于 TheIntroDB 数据库，自动跳过电影和电视剧的片头、前情回顾、片尾和预告片段</summary>
         <description lang="en_GB">Looks up segment timings from TheIntroDB while you watch. Uses TMDB ids when present; otherwise IMDb ids (tt…) with season/episode.</description>
@@ -41,7 +40,7 @@
         <assets>
             <icon>resources/icon.png</icon>
         </assets>
-        <news lang="en_GB">v1.8.2 - Add API key check.</news>
+        <news lang="en_GB">v2.0.0 - Update to TheIntroDB API v4</news>
     </extension>
 </addon>
 </addons>
