@@ -1,0 +1,145 @@
+# Smart Intro Skip language file
+msgid ""
+msgstr ""
+"Project-Id-Version: plugin.video.tidb\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: 2026-11-06 12:00+0100\n"
+"Last-Translator: Sch-Caseb\n"
+"Language-Team: French\n"
+"Language: fr_FR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+msgctxt "#32001"
+msgid "Skip Intro"
+msgstr "Passer l'intro"
+
+msgctxt "#32003"
+msgid "Skip Recap"
+msgstr "Passer le résumé"
+
+msgctxt "#32004"
+msgid "Skip Credits"
+msgstr "Passer le générique"
+
+msgctxt "#32005"
+msgid "Skip Preview"
+msgstr "Passer l'aperçu"
+
+msgctxt "#32006"
+msgid "Enable intro skipping"
+msgstr "Activer le saut des intros"
+
+msgctxt "#32007"
+msgid "Enable recap skipping"
+msgstr "Activer le saut des résumés"
+
+msgctxt "#32008"
+msgid "Enable credits skipping"
+msgstr "Activer le saut des génériques"
+
+msgctxt "#32009"
+msgid "Enable preview skipping"
+msgstr "Activer le saut des aperçus"
+
+msgctxt "#32011"
+msgid "Extra seconds to skip past segment end"
+msgstr "Secondes à sauter en plus après le segment"
+
+msgctxt "#32012"
+msgid "Next Episode"
+msgstr "Épisode suivant"
+
+msgctxt "#32020"
+msgid "Mark Intro Start"
+msgstr "Marquer le début de l'intro"
+
+msgctxt "#32021"
+msgid "Mark Intro End"
+msgstr "Marquer la fin de l'intro"
+
+msgctxt "#32022"
+msgid "Submitted!"
+msgstr "Envoyé !"
+
+msgctxt "#32023"
+msgid "Submission failed"
+msgstr "Échec de l'envoi"
+
+msgctxt "#32024"
+msgid "Offer to submit intros on pause (needs API key)"
+msgstr "En pause : proposer l'envoi d'intro (clé API requise)"
+
+msgctxt "#32025"
+msgid "General"
+msgstr "Général"
+
+msgctxt "#32026"
+msgid "Segment Types"
+msgstr "Types de segments"
+
+msgctxt "#32027"
+msgid "TheIntroDB"
+msgstr "TheIntroDB"
+
+msgctxt "#32028"
+msgid "Submissions"
+msgstr "Envois"
+
+msgctxt "#32029"
+msgid "Privacy"
+msgstr "Confidentialité"
+
+msgctxt "#32030"
+msgid "Debug"
+msgstr "Débogage"
+
+msgctxt "#32031"
+msgid "Enable lookups"
+msgstr "Activer les recherches"
+
+msgctxt "#32032"
+msgid "Optional TheIntroDB API key"
+msgstr "Clé API TheIntroDB (facultative)"
+
+msgctxt "#32033"
+msgid "Anonymous usage reporting"
+msgstr "Rapport d'utilisation anonyme"
+
+msgctxt "#32034"
+msgid "Verbose logging (kodi.log)"
+msgstr "Journalisation détaillée (kodi.log)"
+
+msgctxt "#32035"
+msgid "On-screen debug notifications"
+msgstr "Notifications de débogage à l'écran"
+
+msgctxt "#32036"
+msgid "Auto-skip intro segments"
+msgstr "Passer automatiquement les intros"
+
+msgctxt "#32037"
+msgid "Auto-skip recap segments"
+msgstr "Passer automatiquement les résumés"
+
+msgctxt "#32038"
+msgid "Auto-skip credits segments"
+msgstr "Passer automatiquement les génériques"
+
+msgctxt "#32039"
+msgid "Auto-skip preview segments"
+msgstr "Passer automatiquement les aperçus"
+
+msgctxt "#32040"
+msgid "Hide skip button after (seconds, 0 = keep until segment ends)"
+msgstr "Durée d'affichage du bouton (s, 0 = fin du segment)"
+
+msgctxt "#32041"
+msgid "Test API key"
+msgstr "Tester la clé API"
+
+msgctxt "#32042"
+msgid "Enable, then press OK to close settings and see the result"
+msgstr "Activez, puis appuyez sur OK pour fermer les paramètres et voir le résultat"
