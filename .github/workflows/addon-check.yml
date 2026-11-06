@@ -32,8 +32,11 @@ jobs:
       working-directory: ${{ github.repository }}
       continue-on-error: true
     - name: Run kodi-addon-checker on repository
-      run: $HOME/.local/bin/kodi-addon-checker --branch=main ${{ github.repository }}/repository.tidb.repo/
+      # --branch is the Kodi release codename the checker resolves dependencies
+      # against, not a git branch. Reported problems are pre-existing (icon size,
+      # the <path> element) and this step is intentionally non-blocking.
+      run: $HOME/.local/bin/kodi-addon-checker --branch=omega ${{ github.repository }}/repository.tidb.repo/
       continue-on-error: true
     - name: Run kodi-addon-checker on main addon
-      run: $HOME/.local/bin/kodi-addon-checker --branch=main ${{ github.repository }}/plugin.video.tidb/
+      run: $HOME/.local/bin/kodi-addon-checker --branch=omega ${{ github.repository }}/plugin.video.tidb/
       continue-on-error: true
