@@ -11,10 +11,21 @@ on:
     branches:
       - main
   workflow_dispatch:
+permissions:
+  contents: read
 jobs:
   tests:
     name: Addon checker
     runs-on: ubuntu-latest
+    strategy:
+      # Report every supported release even if one leg fails early.
+      fail-fast: false
+      matrix:
+        # --branch is the Kodi release codename the checker resolves dependencies
+        # against, not a git branch. Nexus (20) is the oldest release the add-on
+        # supports -- addon.xml requires xbmc.python 3.0.1, which Kodi 19 does not
+        # provide -- and Omega (21) is the current one.
+        kodi-release: [nexus, omega]
     steps:
     - uses: actions/checkout@v4
       with:
@@ -32,11 +43,16 @@ jobs:
       working-directory: ${{ github.repository }}
       continue-on-error: true
     - name: Run kodi-addon-checker on repository
-      # --branch is the Kodi release codename the checker resolves dependencies
-      # against, not a git branch. Reported problems are pre-existing (icon size,
-      # the <path> element) and this step is intentionally non-blocking.
-      run: $HOME/.local/bin/kodi-addon-checker --branch=omega ${{ github.repository }}/repository.tidb.repo/
+      # Reported problems are pre-existing (icon size, the <path> element) and
+      # this step is intentionally non-blocking.
+      run: >-
+        "$HOME/.local/bin/kodi-addon-checker"
+        --branch=${{ matrix.kodi-release }}
+        "${{ github.repository }}/repository.tidb.repo/"
       continue-on-error: true
     - name: Run kodi-addon-checker on main addon
-      run: $HOME/.local/bin/kodi-addon-checker --branch=omega ${{ github.repository }}/plugin.video.tidb/
+      run: >-
+        "$HOME/.local/bin/kodi-addon-checker"
+        --branch=${{ matrix.kodi-release }}
+        "${{ github.repository }}/plugin.video.tidb/"
       continue-on-error: true
