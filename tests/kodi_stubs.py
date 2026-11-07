@@ -45,8 +45,9 @@ def read_settings():
 def write_settings(values, keep_existing=False):
     """Write the user settings file, the way the settings dialog does on close.
 
-    Each write bumps the mtime past the previous one, so a reader that caches by
-    mtime cannot miss a change made in the same second.
+    Each write bumps the mtime past the previous one, which is what a real save
+    does; a test that needs the opposite (an unchanged timestamp) can restore it
+    with os.utime.
     """
     if keep_existing:
         merged = read_settings()

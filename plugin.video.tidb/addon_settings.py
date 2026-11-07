@@ -15,9 +15,15 @@ reported no key until a restart, and why enabling a feature appeared to do
 nothing.
 
 The dialog writes the values to `<profile>/settings.xml` when it closes, so that
-file is the fresh source. Reading it costs a small XML parse, and the fallback
-keeps the old behaviour for anything the file does not carry — including the case
-where a future Kodi changes the file's shape.
+file is the fresh source. It is read and parsed on every call rather than cached:
+it is about a kilobyte, reading and parsing it takes ~20 µs, and this add-on reads
+a handful of settings per second — while *any* cache keyed on the file's timestamp
+can miss a write that lands in the same tick (filesystems with one-second
+granularity, or a writer that preserves the timestamp), which is the staleness
+this module exists to remove.
+
+The fallback keeps the old behaviour for anything the file does not carry — a
+fresh install has no file, and a future Kodi may change its shape.
 """
 import os
 import xml.etree.ElementTree as ElementTree
@@ -29,9 +35,6 @@ import xbmcvfs
 
 ADDON = xbmcaddon.Addon()
 _ADDON_ID = ADDON.getAddonInfo('id')
-
-#: Last read file, keyed by path + mtime so a poll loop does not re-parse it.
-_cache: Dict[str, object] = {'path': '', 'mtime': None, 'values': {}}
 
 
 def _settings_path() -> str:
@@ -47,14 +50,8 @@ def _settings_path() -> str:
 def _saved_values() -> Dict[str, str]:
     """The values in the user settings file, or {} when it cannot be read."""
     path = _settings_path()
-    if not path:
+    if not path or not os.path.exists(path):
         return {}
-    try:
-        mtime = os.path.getmtime(path)
-    except OSError:
-        return {}
-    if _cache['path'] == path and _cache['mtime'] == mtime:
-        return _cache['values']  # type: ignore[return-value]
 
     try:
         root = ElementTree.parse(path).getroot()
@@ -70,10 +67,6 @@ def _saved_values() -> Dict[str, str]:
     if not values:
         xbmc.log('[TheIntroDB] No settings found in {}'.format(path), xbmc.LOGWARNING)
         return {}
-
-    _cache['path'] = path
-    _cache['mtime'] = mtime
-    _cache['values'] = values
     return values
 
 

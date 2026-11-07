@@ -58,6 +58,24 @@ class SavedSettingsTests(unittest.TestCase):
         self.assertFalse(addon_settings.setting_bool('never_saved'))
         self.assertTrue(addon_settings.setting_bool('never_saved', True))
 
+    def test_a_change_with_the_same_mtime_and_length_is_seen(self):
+        # A write can land in the same timestamp tick as the one before it (some
+        # filesystems have one-second granularity), and an equal-length change does
+        # not move the size either — so a reader keyed on the file's timestamp or
+        # size can serve a stale value. This is the regression test for that: the
+        # mtime and size below are unchanged, and the new value must still be read.
+        path = kodi_stubs.write_settings({'introdb_api_key': 'aaaa'})
+        before = os.stat(path)
+        self.assertEqual('aaaa', addon_settings.setting('introdb_api_key'))
+
+        kodi_stubs.write_settings({'introdb_api_key': 'bbbb'})
+        os.utime(path, ns=(before.st_atime_ns, before.st_mtime_ns))
+        after = os.stat(path)
+        self.assertEqual(before.st_mtime_ns, after.st_mtime_ns)
+        self.assertEqual(before.st_size, after.st_size)
+
+        self.assertEqual('bbbb', addon_settings.setting('introdb_api_key'))
+
     def test_a_missing_file_falls_back_to_the_addon(self):
         kodi_stubs.SETTINGS['introdb_api_key'] = 'from-get-setting'
         self.assertFalse(os.path.exists(kodi_stubs.SETTINGS_FILE))
