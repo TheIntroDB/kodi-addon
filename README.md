@@ -1,4 +1,4 @@
-<img align="right" width="88" src="https://raw.githubusercontent.com/TheIntroDB/theintrodb-assets/main/integrations/kodi.png" alt="Kodi">
+<img align="right" width="88" src="https://raw.githubusercontent.com/TheIntroDB/.github/main/integrations/kodi.png" alt="Kodi">
 
 [![Kodi 19%2B](https://img.shields.io/badge/Kodi-19%2B-17B2E7?style=flat-square&logo=kodi&logoColor=4ade80&labelColor=0d0d0d)](https://kodi.tv)
 [![License](https://img.shields.io/github/license/TheIntroDB/kodi-addon?style=flat-square&logo=gnu&logoColor=4ade80&label=License&labelColor=0d0d0d&color=038939)](https://github.com/TheIntroDB/kodi-addon/blob/main/LICENSE)
