@@ -18,7 +18,7 @@ msgstr "Passer l'intro"
 
 msgctxt "#32003"
 msgid "Skip Recap"
-msgstr "Passer le résumé"
+msgstr "Passer le récap"
 
 msgctxt "#32004"
 msgid "Skip Credits"
