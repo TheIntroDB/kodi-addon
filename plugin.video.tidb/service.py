@@ -5,7 +5,8 @@
 import xbmc
 import xbmcaddon
 import xbmcgui
-from typing import List, Dict, Optional, Any, Tuple
+from functools import partial
+from typing import List, Dict, Optional, Any, Tuple, Callable
 
 from player import TIDBPlayer
 import skipper
@@ -137,7 +138,8 @@ def _resolve_segment_bounds(segment: Dict[str, Any], player: TIDBPlayer) -> Opti
     return api_start, api_end, is_next_ep
 
 
-def _show_skip_overlay(player: TIDBPlayer, monitor: xbmc.Monitor, api_end: float, segment_type: str, segment_idx: int) -> Optional[bool]:
+def _show_skip_overlay(player: TIDBPlayer, monitor: xbmc.Monitor, api_end: float, segment_type: str, segment_idx: int,
+                       flag_callback: Optional[Callable[[], bool]] = None) -> Optional[bool]:
     """Show the standard skip pill and return whether it was pressed."""
     if monitor.abortRequested():
         return None  # signal to break the outer loop
@@ -147,6 +149,7 @@ def _show_skip_overlay(player: TIDBPlayer, monitor: xbmc.Monitor, api_end: float
         monitor=monitor,
         segment_type=segment_type,
         segment_index=segment_idx,
+        flag_callback=flag_callback,
     )
 
 
@@ -203,9 +206,10 @@ def _handle_segment(segment: Dict[str, Any], segment_idx: int, player: TIDBPlaye
             return _handle_next_episode(
                 player, monitor, session, api_end, segment_type, segment_idx)
 
-    # Show skip button
+    # Show skip button, with the report pill when reporting is on offer
     xbmc.log('[TheIntroDB] Showing skip overlay for {}'.format(segment_name), xbmc.LOGINFO)
-    pressed = _show_skip_overlay(player, monitor, api_end, overlay_type, segment_idx)
+    flag_callback = partial(_report_segment, session) if _report_enabled() else None
+    pressed = _show_skip_overlay(player, monitor, api_end, overlay_type, segment_idx, flag_callback)
     if pressed is None:
         return 'break'
     if pressed:
@@ -247,6 +251,48 @@ def _handle_next_episode(player: TIDBPlayer, monitor: xbmc.Monitor, session: Pla
     else:
         xbmc.log('[TheIntroDB] User did NOT press Next Episode', xbmc.LOGINFO)
     return None
+
+
+# ── Reporting ─────────────────────────────────────────────────────────────
+
+def _report_enabled() -> bool:
+    """Whether the report pill should be offered with the skip prompt.
+
+    A report is sent with the configured key, so the pill is drawn only when one
+    is set: TheIntroDB refuses an anonymous vote, and the control would otherwise
+    offer the viewer nothing but a failure.
+    """
+    if not _fresh_bool('enable_report_button'):
+        return False
+    try:
+        api_key = (xbmcaddon.Addon(_ADDON_ID).getSetting('introdb_api_key') or '').strip()
+    except Exception:
+        api_key = (ADDON.getSetting('introdb_api_key') or '').strip()
+    return bool(api_key)
+
+
+def _report_segment(session: PlaybackSession) -> bool:
+    """Report the item being watched to TheIntroDB; True if the vote was taken."""
+    media_ids = session.media_ids
+    if not media_ids:
+        return False
+
+    success, message = introdb.flag_media(
+        tvdb_id=media_ids.get('tvdb_id'),
+        tmdb_id=media_ids.get('tmdb_id'),
+        imdb_id=media_ids.get('imdb_id'),
+        season=media_ids.get('season'),
+        episode=media_ids.get('episode'),
+        is_movie=media_ids.get('is_movie', False),
+    )
+    xbmc.log('[TheIntroDB] Report result: {}'.format(message), xbmc.LOGINFO)
+    # The toast is a Kodi builtin, whose arguments are comma-separated, and an
+    # upstream refusal can carry commas of its own — so the message is flattened.
+    toast = ' '.join(str(message).split()).replace(',', ' ')
+    xbmc.executebuiltin('Notification(TheIntroDB, {}, 3000)'.format(toast))
+    if success and REPORTER:
+        REPORTER.track('segment_reported', {})
+    return success
 
 
 # ── Pause-detection submission ────────────────────────────────────────────

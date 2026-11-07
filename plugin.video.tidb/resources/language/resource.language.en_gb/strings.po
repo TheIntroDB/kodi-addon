@@ -142,3 +142,15 @@ msgstr ""
 msgctxt "#32042"
 msgid "Enable, then press OK to close settings and see the result"
 msgstr ""
+
+msgctxt "#32043"
+msgid "Report"
+msgstr ""
+
+msgctxt "#32044"
+msgid "Show a Report button under the skip prompt (needs API key)"
+msgstr ""
+
+msgctxt "#32045"
+msgid "Reporting"
+msgstr ""

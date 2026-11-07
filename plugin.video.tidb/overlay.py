@@ -27,6 +27,9 @@ def _detect_res() -> str:
 _OVERLAY_RES = _detect_res()
 _BG_IMAGE_SHADOW = 3003
 _BG_IMAGE_FILL = 3004
+# Report pill, drawn under the skip pill by the same XML
+_BG_FLAG_SHADOW = 3005
+_BG_FLAG_FILL = 3006
 
 # String IDs for localization
 STR_SKIP_INTRO = 32001
@@ -34,6 +37,7 @@ STR_SKIP_RECAP = 32003
 STR_SKIP_CREDITS = 32004
 STR_SKIP_PREVIEW = 32005
 STR_NEXT_EPISODE = 32012
+STR_REPORT = 32043
 
 # must match overlay.xml window id
 OVERLAY_WINDOW_ID = 14000
@@ -42,6 +46,7 @@ ACTION_SELECT = 7
 ACTION_PREVIOUS_MENU = 10
 ACTION_BACK = 92
 BUTTON_ID = 3001
+FLAG_BUTTON_ID = 3002
 
 _POLL_INTERVAL = 0.5
 _START_POLL_INTERVAL = 0.25
@@ -60,13 +65,15 @@ class SkipOverlay(xbmcgui.WindowXMLDialog):
     def __new__(cls, xml_file: str, addon_path: str, skin: str, res: str,
                 callback: Optional[Callable[[], None]] = None, intro_end: Optional[float] = None,
                 player: Optional[xbmc.Player] = None, monitor: Optional[xbmc.Monitor] = None,
-                segment_type: str = 'intro', segment_index: int = 0) -> 'SkipOverlay':
+                segment_type: str = 'intro', segment_index: int = 0,
+                flag_callback: Optional[Callable[[], bool]] = None) -> 'SkipOverlay':
         return super(SkipOverlay, cls).__new__(cls, xml_file, addon_path, skin, res)  # type: ignore[call-arg]
 
     def __init__(self, xml_file: str, addon_path: str, skin: str, res: str,
                  callback: Optional[Callable[[], None]] = None, intro_end: Optional[float] = None,
                  player: Optional[xbmc.Player] = None, monitor: Optional[xbmc.Monitor] = None,
-                 segment_type: str = 'intro', segment_index: int = 0) -> None:
+                 segment_type: str = 'intro', segment_index: int = 0,
+                 flag_callback: Optional[Callable[[], bool]] = None) -> None:
         super(SkipOverlay, self).__init__(xml_file, addon_path, skin, res)
         self._skip_pressed: bool = False
         self._callback: Optional[Callable[[], None]] = callback
@@ -79,6 +86,9 @@ class SkipOverlay(xbmcgui.WindowXMLDialog):
         self._segment_type: str = segment_type
         self._segment_index: int = segment_index
         self._display_deadline: Optional[float] = None
+        self._flag_callback: Optional[Callable[[], bool]] = flag_callback
+        self._flag_in_flight: bool = False
+        self._flag_reported: bool = False
 
     @property
     def skip_pressed(self) -> bool:
@@ -119,7 +129,25 @@ class SkipOverlay(xbmcgui.WindowXMLDialog):
                 button_control.setLabel(button_text)
         except Exception as e:
             xbmc.log('[TheIntroDB] Failed to set button text: {}'.format(e), xbmc.LOGWARNING)
-        
+
+        # Report pill: drawn only when this prompt carries a way to report the
+        # segment. The controls ship hidden because the mark-intro overlay reuses
+        # this same XML and has nothing to report.
+        show_report = self._flag_callback is not None
+        try:
+            flag_texture = _rounded_rect_texture_path()
+            for image_id in (_BG_FLAG_SHADOW, _BG_FLAG_FILL):
+                image = self.getControl(image_id)
+                if isinstance(image, xbmcgui.ControlImage):
+                    image.setImage(flag_texture)
+                image.setVisible(show_report)
+            flag_button = self.getControl(FLAG_BUTTON_ID)
+            if isinstance(flag_button, xbmcgui.ControlButton):
+                flag_button.setLabel(ADDON.getLocalizedString(STR_REPORT))
+            flag_button.setVisible(show_report)
+        except Exception as e:
+            xbmc.log('[TheIntroDB] Report pill setup failed: {}'.format(e), xbmc.LOGWARNING)
+
         try:
             self.setFocusId(BUTTON_ID)
         except Exception:
@@ -141,13 +169,18 @@ class SkipOverlay(xbmcgui.WindowXMLDialog):
     def onClick(self, controlId: int) -> None:
         if controlId == BUTTON_ID:
             self._do_skip()
+        elif controlId == FLAG_BUTTON_ID:
+            self._do_flag()
 
     def onAction(self, action: xbmcgui.Action) -> None:
         aid = action.getId()
         if aid == ACTION_SELECT:
             try:
-                if self.getFocusId() == BUTTON_ID:
+                focused = self.getFocusId()
+                if focused == BUTTON_ID:
                     self._do_skip()
+                elif focused == FLAG_BUTTON_ID:
+                    self._do_flag()
             except Exception:
                 pass
             return
@@ -166,6 +199,40 @@ class SkipOverlay(xbmcgui.WindowXMLDialog):
             except Exception:
                 pass
         self._dismiss_main_thread()
+
+    def _do_flag(self) -> None:
+        """Report the segment, without blocking the GUI or skipping.
+
+        The callback makes a network round trip and this runs on Kodi's GUI
+        thread, so the work goes to a worker and the pill stays open: reporting
+        a bad segment and skipping it are separate decisions. A press already in
+        flight, or one on a segment this prompt has reported, is ignored —
+        TheIntroDB keys one vote per account per media, and Kodi can deliver one
+        OK press as both a click and a select action.
+        """
+        with self._lock:
+            if self._closed or self._flag_in_flight or self._flag_reported:
+                return
+            self._flag_in_flight = True
+        callback = self._flag_callback
+        if callback is None:
+            with self._lock:
+                self._flag_in_flight = False
+            return
+        worker = threading.Thread(target=self._run_flag, args=(callback,))
+        worker.daemon = True
+        worker.start()
+
+    def _run_flag(self, callback: Callable[[], bool]) -> None:
+        reported = False
+        try:
+            reported = bool(callback())
+        except Exception as e:
+            xbmc.log('[TheIntroDB] Report failed: {}'.format(e), xbmc.LOGERROR)
+        with self._lock:
+            self._flag_in_flight = False
+            if reported:
+                self._flag_reported = True
 
     def _poll_loop(self) -> None:
         # close from worker thread using dialog.close builtin — kodi does not like gui from random threads otherwise
@@ -221,7 +288,8 @@ class SkipOverlay(xbmcgui.WindowXMLDialog):
 
 def show_skip_overlay(callback: Optional[Callable[[], None]] = None, intro_end: Optional[float] = None,
                       player: Optional[xbmc.Player] = None, monitor: Optional[xbmc.Monitor] = None,
-                      segment_type: str = 'intro', segment_index: int = 0) -> bool:
+                      segment_type: str = 'intro', segment_index: int = 0,
+                      flag_callback: Optional[Callable[[], bool]] = None) -> bool:
     # blocks until window closes; true if user hit skip
     mon = monitor if monitor is not None else xbmc.Monitor()
     if mon.abortRequested():
@@ -240,6 +308,7 @@ def show_skip_overlay(callback: Optional[Callable[[], None]] = None, intro_end: 
             monitor=monitor,
             segment_type=segment_type,
             segment_index=segment_index,
+            flag_callback=flag_callback,
         )
         wnd.doModal()
         pressed = wnd.skip_pressed
