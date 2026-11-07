@@ -97,18 +97,15 @@ class OverlayLayoutTests(unittest.TestCase):
             self.assertLessEqual(
                 report['posy'] + report['height'], int(group.findtext('height')), resolution)
 
-    def test_the_report_pill_is_driven_by_the_window_property_the_addon_sets(self):
-        # Kodi's Control.setVisible cannot show a control whose <visible> condition is
-        # false — it only moves the force-hidden flag — so the pill's visibility is a
-        # condition reading a window property. The mark-intro overlay shares this XML
-        # and never sets that property, so it never draws the pill.
-        expected = '!String.IsEmpty(Window.Property({}))'.format(overlay.REPORT_PROPERTY)
+    def test_the_report_pill_carries_no_skin_condition(self):
+        # Python decides whether the pill is drawn: Kodi's Control.setVisible can
+        # hide a control but never show one whose <visible> condition is false, so a
+        # condition here would make the pill impossible to show.
         for resolution in RESOLUTIONS:
             _root, _group, controls = _overlay_controls(resolution)
-            self.assertEqual(expected, controls[REPORT_BUTTON]['visible'], resolution)
+            self.assertEqual('', controls[REPORT_BUTTON]['visible'], resolution)
             for image_id in (overlay._BG_FLAG_SHADOW, overlay._BG_FLAG_FILL):
-                self.assertEqual(expected, controls[image_id]['visible'], resolution)
-            # The skip pill carries no condition: nothing hides it but its own code.
+                self.assertEqual('', controls[image_id]['visible'], resolution)
             self.assertEqual('', controls[SKIP_BUTTON]['visible'], resolution)
             for image_id in SKIP_IMAGES:
                 self.assertEqual('', controls[image_id]['visible'], resolution)
@@ -118,25 +115,20 @@ class ReportPressTests(unittest.TestCase):
     def test_the_report_pill_is_offered_only_when_reporting_is_available(self):
         offered = _window(flag_callback=lambda: True)
         offered.onInit()
-        self.assertEqual('1', offered.getProperty(overlay.REPORT_PROPERTY))
         self.assertEqual('string-32043', offered.getControl(overlay.FLAG_BUTTON_ID).label)
+        for control_id in (overlay.FLAG_BUTTON_ID, overlay._BG_FLAG_SHADOW, overlay._BG_FLAG_FILL):
+            self.assertEqual([True], offered.getControl(control_id).set_visible_calls)
         for image_id in (overlay._BG_FLAG_SHADOW, overlay._BG_FLAG_FILL):
             self.assertIsNotNone(offered.getControl(image_id).image)
 
         plain = _window()
         plain.onInit()
-        self.assertEqual('', plain.getProperty(overlay.REPORT_PROPERTY))
+        for control_id in (overlay.FLAG_BUTTON_ID, overlay._BG_FLAG_SHADOW, overlay._BG_FLAG_FILL):
+            self.assertEqual([False], plain.getControl(control_id).set_visible_calls)
 
-        # Neither prompt drives the pill with setVisible: Kodi ignores it for a
-        # control whose <visible> condition is false, which is the bug this shape
-        # exists to avoid.
-        for window in (offered, plain):
-            for control_id in (overlay.FLAG_BUTTON_ID, overlay._BG_FLAG_SHADOW, overlay._BG_FLAG_FILL):
-                self.assertEqual([], window.getControl(control_id).set_visible_calls)
-
-    def test_the_mark_overlay_never_offers_the_report_pill(self):
-        # The mark-intro pill reuses overlay.xml, so it must leave the property the
-        # report pill's condition reads unset, and draw no pill of its own.
+    def test_the_mark_overlay_hides_the_report_pill(self):
+        # The mark-intro pill reuses overlay.xml, so it must hide the report
+        # controls the skip prompt would otherwise decide about.
         class _AbortingMonitor(kodi_stubs.Monitor):
             def waitForAbort(self, timeout=None):
                 return True
@@ -146,8 +138,9 @@ class ReportPressTests(unittest.TestCase):
             label_text='Mark Intro Start', player=None, monitor=_AbortingMonitor())
         wnd.onInit()
 
-        self.assertEqual('', wnd.getProperty(overlay.REPORT_PROPERTY))
-        self.assertEqual([], wnd.getControl(overlay.FLAG_BUTTON_ID).set_visible_calls)
+        for control_id in (submit_overlay.FLAG_BUTTON_ID, submit_overlay._BG_FLAG_SHADOW,
+                           submit_overlay._BG_FLAG_FILL):
+            self.assertEqual([False], wnd.getControl(control_id).set_visible_calls)
 
     def test_pressing_report_reports_and_leaves_the_pill_open(self):
         calls = []
@@ -215,28 +208,31 @@ class ReportServiceTests(unittest.TestCase):
         self._original_reporter = service.REPORTER
         service.REPORTER = None
         del kodi_stubs.EXECUTED_BUILTINS[:]
+        kodi_stubs.remove_settings()
+        kodi_stubs.SETTINGS.clear()
         self.reports = []
 
     def tearDown(self):
         service.introdb.flag_media = self._original_flag
         service.REPORTER = self._original_reporter
-        kodi_stubs.SETTINGS.pop('enable_report_button', None)
-        kodi_stubs.SETTINGS.pop('introdb_api_key', None)
+        kodi_stubs.remove_settings()
+        kodi_stubs.SETTINGS.clear()
 
     def _session(self, media_ids):
         session = service.PlaybackSession()
         session.media_ids = media_ids
         return session
 
-    def test_reporting_needs_the_setting_and_a_key(self):
-        # The vote is the account's, so the pill is not offered without a key.
-        kodi_stubs.SETTINGS['enable_report_button'] = 'true'
+    def test_reporting_is_offered_once_a_key_is_saved(self):
+        # The reported bug: the key was set and the pill never appeared, because the
+        # service only ever saw the settings Kodi cached when the add-on loaded.
+        kodi_stubs.SETTINGS['introdb_api_key'] = ''
         self.assertFalse(service._report_enabled())
 
-        kodi_stubs.SETTINGS['introdb_api_key'] = 'theintrodb:user_1:secret'
+        kodi_stubs.write_settings({'introdb_api_key': 'theintrodb:user_1:secret'})
         self.assertTrue(service._report_enabled())
 
-        kodi_stubs.SETTINGS['enable_report_button'] = 'false'
+        kodi_stubs.write_settings({'introdb_api_key': '   '})
         self.assertFalse(service._report_enabled())
 
     def test_a_report_carries_the_playing_item_and_toasts_without_commas(self):
@@ -272,6 +268,49 @@ class ReportServiceTests(unittest.TestCase):
         self.assertFalse(service._report_segment(self._session(None)))
         self.assertEqual([], self.reports)
         self.assertEqual([], kodi_stubs.EXECUTED_BUILTINS)
+
+
+class SubmitGateTests(unittest.TestCase):
+    """The submit prompt was invisible for the same reason — enable_submissions was
+    never seen — and it is also silent by design when the title already has an
+    intro, which is now explained to the viewer instead of swallowed."""
+
+    def setUp(self):
+        kodi_stubs.remove_settings()
+        kodi_stubs.SETTINGS.clear()
+
+    def tearDown(self):
+        kodi_stubs.remove_settings()
+        kodi_stubs.SETTINGS.clear()
+
+    def test_submitting_is_offered_once_enabled_is_saved(self):
+        session = service.PlaybackSession()
+        kodi_stubs.SETTINGS['enable_submissions'] = 'false'
+        kodi_stubs.SETTINGS['introdb_api_key'] = ''
+        self.assertFalse(service._should_offer_submit(session, True, {}))
+
+        kodi_stubs.write_settings({
+            'enable_submissions': 'true',
+            'introdb_api_key': 'theintrodb:user_1:secret',
+        })
+        self.assertTrue(service._should_offer_submit(session, True, {}))
+
+    def test_the_two_reasons_a_viewer_cannot_see_are_explained(self):
+        kodi_stubs.write_settings({'enable_submissions': 'true'})
+        self.assertIn('API key', service._submit_block_reason(True, {}))
+
+        kodi_stubs.write_settings(
+            {'introdb_api_key': 'theintrodb:user_1:secret'}, keep_existing=True)
+        self.assertIsNone(service._submit_block_reason(True, {}))
+        self.assertIn('already has an intro',
+                      service._submit_block_reason(True, {'intro': [{'start': 1.0, 'end': 2.0}]}))
+
+    def test_nothing_is_said_when_the_viewer_did_not_ask_or_is_playing(self):
+        kodi_stubs.write_settings({'enable_submissions': 'false'})
+        self.assertIsNone(service._submit_block_reason(True, {}))
+
+        kodi_stubs.write_settings({'enable_submissions': 'true'}, keep_existing=True)
+        self.assertIsNone(service._submit_block_reason(False, {}))
 
 
 if __name__ == '__main__':

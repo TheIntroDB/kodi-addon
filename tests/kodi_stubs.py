@@ -12,17 +12,64 @@ instances, and the tests that rely on a configured value would silently see none
 Importing this module installs the stubs into sys.modules, so it must be
 imported before any add-on module.
 """
+import os
 import sys
+import time
 import types
+import xml.etree.ElementTree as ElementTree
 
 ADDON_PATH = '/tmp/tidb-addon'
 PROFILE_PATH = '/tmp/tidb-addon-profile'
-#: Settings the add-on reads, keyed by setting id. Tests set entries directly.
+#: The user settings file the settings dialog writes, and the add-on reads.
+SETTINGS_FILE = os.path.join(PROFILE_PATH, 'settings.xml')
+#: Settings the add-on reads through getSetting(), keyed by setting id. These stand
+#: for what Kodi cached when the add-on loaded: writing here is *not* how a user
+#: changes a setting, and the add-on must not rely on it for a fresh value.
 SETTINGS = {}
 #: Builtins the add-on executed, oldest first (Notification, etc.).
 EXECUTED_BUILTINS = []
 #: JSON-RPC calls made through xbmc.executeJSONRPC, oldest first.
 JSONRPC_CALLS = []
+
+_write_clock = [0.0]
+
+
+def read_settings():
+    """The values in the user settings file, as a dict."""
+    if not os.path.exists(SETTINGS_FILE):
+        return {}
+    root = ElementTree.parse(SETTINGS_FILE).getroot()
+    return {element.get('id'): (element.text or '') for element in root.iter('setting')}
+
+
+def write_settings(values, keep_existing=False):
+    """Write the user settings file, the way the settings dialog does on close.
+
+    Each write bumps the mtime past the previous one, so a reader that caches by
+    mtime cannot miss a change made in the same second.
+    """
+    if keep_existing:
+        merged = read_settings()
+        merged.update(values)
+        values = merged
+    os.makedirs(PROFILE_PATH, exist_ok=True)
+    body = '\n'.join('    <setting id="{}">{}</setting>'.format(key, value)
+                     for key, value in sorted(values.items()))
+    with open(SETTINGS_FILE, 'w', encoding='utf-8') as handle:
+        handle.write('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'
+                     '<settings version="2">\n{}\n</settings>\n'.format(body))
+    _write_clock[0] += 1.0
+    stamp = time.time() + _write_clock[0]
+    os.utime(SETTINGS_FILE, (stamp, stamp))
+    return SETTINGS_FILE
+
+
+def remove_settings():
+    """Delete the user settings file, as a fresh install has none."""
+    try:
+        os.remove(SETTINGS_FILE)
+    except OSError:
+        pass
 
 
 class Addon(object):

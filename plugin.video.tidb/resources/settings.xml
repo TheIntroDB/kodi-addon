@@ -23,9 +23,6 @@
     <category label="$ADDON[plugin.video.tidb 32028]">
         <setting id="enable_submissions" type="bool" label="$ADDON[plugin.video.tidb 32024]" default="false"/>
     </category>
-    <category label="$ADDON[plugin.video.tidb 32045]">
-        <setting id="enable_report_button" type="bool" label="$ADDON[plugin.video.tidb 32044]" default="false"/>
-    </category>
     <category label="$ADDON[plugin.video.tidb 32029]">
         <setting id="anonymous_usage_reporting" type="bool" label="$ADDON[plugin.video.tidb 32033]" default="true"/>
     </category>

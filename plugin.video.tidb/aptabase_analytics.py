@@ -16,6 +16,8 @@ import xbmc
 import xbmcaddon
 import xbmcvfs
 
+import addon_settings
+
 ADDON = xbmcaddon.Addon()
 _ADDON_ID = ADDON.getAddonInfo('id')
 APTABASE_HOST = 'https://analytics.theintrodb.org'
@@ -25,14 +27,11 @@ PERSIST_INTERVAL_SECS = 30.0
 
 
 def _fresh_setting(key: str) -> str:
-    try:
-        return xbmcaddon.Addon(_ADDON_ID).getSetting(key)
-    except Exception:
-        return ADDON.getSetting(key)
+    return addon_settings.setting(key)
 
 
 def _fresh_bool(key: str) -> bool:
-    return _fresh_setting(key) == 'true'
+    return addon_settings.setting_bool(key)
 
 
 def _utc_iso() -> str:

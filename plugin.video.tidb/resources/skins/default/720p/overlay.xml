@@ -53,13 +53,10 @@
                 <label>Skip intro</label>
             </control>
 
-            <!-- Report pill (secondary), directly under the skip pill. Drawn only
-                 when the prompt offers reporting: overlay.py sets the window
-                 property the condition below reads. It is a condition rather than
-                 setVisible because Kodi's Control.setVisible can only force a
-                 control hidden, never show one its skin condition hides — and
-                 this XML is shared with the mark-intro overlay, which must not
-                 draw the pill. -->
+            <!-- Report pill (secondary), directly under the skip pill. It carries no
+                 <visible> condition: Kodi's Control.setVisible can hide a control
+                 but never show one a condition hides, so overlay.py decides (and
+                 the mark-intro overlay, which shares this XML, hides it). -->
             <control type="image" id="3005">
                 <posx>1</posx>
                 <posy>46</posy>
@@ -67,7 +64,6 @@
                 <height>38</height>
                 <aspectratio>stretch</aspectratio>
                 <texture colordiffuse="55000000" border="12">rounded_rect.png</texture>
-                <visible>!String.IsEmpty(Window.Property(tidb_report))</visible>
             </control>
 
             <control type="image" id="3006">
@@ -77,7 +73,6 @@
                 <height>38</height>
                 <aspectratio>stretch</aspectratio>
                 <texture colordiffuse="B0000000" border="12">rounded_rect.png</texture>
-                <visible>!String.IsEmpty(Window.Property(tidb_report))</visible>
             </control>
 
             <control type="button" id="3002">
@@ -93,7 +88,6 @@
                 <texturefocus colordiffuse="FF3A3A3A" border="12">rounded_rect.png</texturefocus>
                 <texturenofocus colordiffuse="B0000000" border="12">rounded_rect.png</texturenofocus>
                 <label>Report</label>
-                <visible>!String.IsEmpty(Window.Property(tidb_report))</visible>
             </control>
         </control>
     </controls>

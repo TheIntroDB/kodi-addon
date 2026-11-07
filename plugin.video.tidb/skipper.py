@@ -6,6 +6,8 @@ import xbmc
 import xbmcaddon
 from typing import Optional
 
+import addon_settings
+
 ADDON = xbmcaddon.Addon()
 
 
@@ -13,7 +15,7 @@ def execute_skip(player: xbmc.Player, intro_start: float, intro_end: float, file
     if not player.isPlaying():
         return False
 
-    offset = int(ADDON.getSetting('skip_offset') or 2)
+    offset = int(addon_settings.setting('skip_offset') or 2)
     target = intro_end + offset
 
     total_time = player.getTotalTime()

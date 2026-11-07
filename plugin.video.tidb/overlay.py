@@ -11,6 +11,8 @@ import xbmcaddon
 import xbmcvfs
 from typing import Optional, Callable
 
+import addon_settings
+
 ADDON = xbmcaddon.Addon()
 ADDON_PATH: str = ADDON.getAddonInfo('path')
 # Must match the last argument to SkipOverlay / WindowXMLDialog (folder under resources/skins/default/).
@@ -47,8 +49,6 @@ ACTION_PREVIOUS_MENU = 10
 ACTION_BACK = 92
 BUTTON_ID = 3001
 FLAG_BUTTON_ID = 3002
-#: The window property the report pill's <visible> condition reads (overlay.xml).
-REPORT_PROPERTY = 'tidb_report'
 
 _POLL_INTERVAL = 0.5
 _START_POLL_INTERVAL = 0.25
@@ -133,15 +133,16 @@ class SkipOverlay(xbmcgui.WindowXMLDialog):
             xbmc.log('[TheIntroDB] Failed to set button text: {}'.format(e), xbmc.LOGWARNING)
 
         # Report pill: drawn only when this prompt carries a way to report the
-        # segment. The controls' <visible> condition reads this window property
-        # rather than being driven by setVisible: Kodi's Control.setVisible only
-        # touches a control's force-hidden flag (CGUIControl::SetVisible, whose
-        # setVisState is false from Python), so it can hide a control but never
-        # show one whose skin condition is false. The condition is also what keeps
-        # the pill off the mark-intro overlay, which shares this XML and never
-        # sets the property.
+        # segment. Kodi's Control.setVisible can hide a control but cannot show one
+        # whose XML <visible> condition is false (CGUIControl::SetVisible only moves
+        # the force-hidden flag when setVisState is false, which is how Python calls
+        # it), so these controls carry no condition in overlay.xml and Python owns
+        # the decision. The mark-intro overlay shares that XML and hides them in its
+        # own onInit.
+        show_report = self._flag_callback is not None
         try:
-            self.setProperty(REPORT_PROPERTY, '1' if self._flag_callback is not None else '')
+            for control_id in (_BG_FLAG_SHADOW, _BG_FLAG_FILL, FLAG_BUTTON_ID):
+                self.getControl(control_id).setVisible(show_report)
         except Exception as e:
             xbmc.log('[TheIntroDB] Report pill visibility: {}'.format(e), xbmc.LOGWARNING)
 
@@ -164,7 +165,7 @@ class SkipOverlay(xbmcgui.WindowXMLDialog):
         if self._intro_end is not None and self._player is not None:
             # Read configurable display duration (0 = keep until segment ends)
             try:
-                display_secs = int(ADDON.getSetting('button_display_seconds'))
+                display_secs = int(addon_settings.setting('button_display_seconds') or 0)
             except (ValueError, TypeError):
                 display_secs = _DEFAULT_DISPLAY_SECONDS
             if display_secs > 0:
