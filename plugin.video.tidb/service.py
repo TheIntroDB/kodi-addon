@@ -266,11 +266,17 @@ def _handle_next_episode(player: TIDBPlayer, monitor: xbmc.Monitor, session: Pla
 def _report_enabled() -> bool:
     """Whether the report pill should be offered with the skip prompt.
 
-    A configured key is the whole gate: the report is sent with it, and TheIntroDB
-    refuses an anonymous vote, so a viewer who has a key has already opted in.
-    (The Silo plugin needs a separate switch because there the key belongs to the
-    server rather than to the viewer.)
+    A configured key is the gate: the report is sent with it, and TheIntroDB refuses
+    an anonymous vote, so a viewer who has a key has already opted in. (The Silo
+    plugin needs an explicit switch because there the key belongs to the server
+    rather than to the viewer.)
+
+    Hiding it is the switch, not showing it: an install that never saved the setting
+    gets the pill, which a "show" switch defaulting to off would not do — Kodi writes
+    every setting, defaults included, when the settings dialog closes.
     """
+    if addon_settings.setting_bool('hide_report_button'):
+        return False
     return bool(addon_settings.setting('introdb_api_key').strip())
 
 

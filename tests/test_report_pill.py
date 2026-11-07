@@ -235,6 +235,20 @@ class ReportServiceTests(unittest.TestCase):
         kodi_stubs.write_settings({'introdb_api_key': '   '})
         self.assertFalse(service._report_enabled())
 
+    def test_the_pill_is_shown_until_it_is_hidden(self):
+        # Shown by default, including for an install that has never saved the setting
+        # — which is why the switch hides rather than shows: Kodi writes every
+        # setting when the dialog closes, so a "show" switch defaulting to off would
+        # leave those viewers without a pill.
+        kodi_stubs.write_settings({'introdb_api_key': 'theintrodb:user_1:secret'})
+        self.assertTrue(service._report_enabled())
+
+        kodi_stubs.write_settings({'hide_report_button': 'true'}, keep_existing=True)
+        self.assertFalse(service._report_enabled())
+
+        kodi_stubs.write_settings({'hide_report_button': 'false'}, keep_existing=True)
+        self.assertTrue(service._report_enabled())
+
     def test_a_report_carries_the_playing_item_and_toasts_without_commas(self):
         def fake_flag_media(**kwargs):
             self.reports.append(kwargs)

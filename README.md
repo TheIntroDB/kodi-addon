@@ -73,7 +73,7 @@ TheIntroDB Kodi Addon includes a few settings to adjust behavior:
 - **Extra seconds after segment end**: Adds a small offset to the skip target
 - **Enable lookups**: Turns TheIntroDB requests on or off
 - **API key**: Lets you use your TheIntroDB API key.
-- **Report button**: Shows a **Report** button under the skip prompt whenever an API key is set, for telling TheIntroDB that a segment is wrong. The report is a vote on your account, so there is nothing to send without a key.
+- **Report button**: Shows a **Report** button under the skip prompt whenever an API key is set, for telling TheIntroDB that a segment is wrong. The report is a vote on your account, so there is nothing to send without a key. Turn on **Hide the Report button** under Reporting if you would rather not see it.
 - **Debug options**: Enables verbose logging and on-screen notifications
 
 ---

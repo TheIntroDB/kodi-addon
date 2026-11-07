@@ -154,3 +154,7 @@ msgstr ""
 msgctxt "#32045"
 msgid "Reporting"
 msgstr ""
+
+msgctxt "#32046"
+msgid "Hide the Report button under the skip prompt"
+msgstr ""
