@@ -143,3 +143,15 @@ msgstr "اختبار مفتاح API"
 msgctxt "#32042"
 msgid "Enable, then press OK to close settings and see the result"
 msgstr "فعّل ثم اضغط موافق لإغلاق الإعدادات ورؤية النتيجة"
+
+msgctxt "#32043"
+msgid "Report"
+msgstr "إبلاغ"
+
+msgctxt "#32044"
+msgid "Show a Report button under the skip prompt (needs API key)"
+msgstr "إظهار زر إبلاغ أسفل زر التخطي (يتطلب مفتاح API)"
+
+msgctxt "#32045"
+msgid "Reporting"
+msgstr "الإبلاغ"

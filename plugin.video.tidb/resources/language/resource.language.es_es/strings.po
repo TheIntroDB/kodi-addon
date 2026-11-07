@@ -138,3 +138,15 @@ msgstr "Probar clave de API"
 msgctxt "#32042"
 msgid "Enable, then press OK to close settings and see the result"
 msgstr "Actívala y luego pulsa Aceptar para cerrar los ajustes y ver el resultado"
+
+msgctxt "#32043"
+msgid "Report"
+msgstr "Reportar"
+
+msgctxt "#32044"
+msgid "Show a Report button under the skip prompt (needs API key)"
+msgstr "Mostrar un botón Reportar bajo el botón de omitir (requiere clave API)"
+
+msgctxt "#32045"
+msgid "Reporting"
+msgstr "Informes"

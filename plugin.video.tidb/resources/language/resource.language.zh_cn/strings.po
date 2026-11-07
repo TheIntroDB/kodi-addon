@@ -138,3 +138,15 @@ msgstr "测试 API 密钥"
 msgctxt "#32042"
 msgid "Enable, then press OK to close settings and see the result"
 msgstr "启用后按确定关闭设置并查看结果"
+
+msgctxt "#32043"
+msgid "Report"
+msgstr "举报"
+
+msgctxt "#32044"
+msgid "Show a Report button under the skip prompt (needs API key)"
+msgstr "在跳过按钮下方显示举报按钮（需要 API 密钥）"
+
+msgctxt "#32045"
+msgid "Reporting"
+msgstr "举报"
