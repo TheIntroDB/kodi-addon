@@ -47,6 +47,8 @@ ACTION_PREVIOUS_MENU = 10
 ACTION_BACK = 92
 BUTTON_ID = 3001
 FLAG_BUTTON_ID = 3002
+#: The window property the report pill's <visible> condition reads (overlay.xml).
+REPORT_PROPERTY = 'tidb_report'
 
 _POLL_INTERVAL = 0.5
 _START_POLL_INTERVAL = 0.25
@@ -131,20 +133,27 @@ class SkipOverlay(xbmcgui.WindowXMLDialog):
             xbmc.log('[TheIntroDB] Failed to set button text: {}'.format(e), xbmc.LOGWARNING)
 
         # Report pill: drawn only when this prompt carries a way to report the
-        # segment. The controls ship hidden because the mark-intro overlay reuses
-        # this same XML and has nothing to report.
-        show_report = self._flag_callback is not None
+        # segment. The controls' <visible> condition reads this window property
+        # rather than being driven by setVisible: Kodi's Control.setVisible only
+        # touches a control's force-hidden flag (CGUIControl::SetVisible, whose
+        # setVisState is false from Python), so it can hide a control but never
+        # show one whose skin condition is false. The condition is also what keeps
+        # the pill off the mark-intro overlay, which shares this XML and never
+        # sets the property.
+        try:
+            self.setProperty(REPORT_PROPERTY, '1' if self._flag_callback is not None else '')
+        except Exception as e:
+            xbmc.log('[TheIntroDB] Report pill visibility: {}'.format(e), xbmc.LOGWARNING)
+
         try:
             flag_texture = _rounded_rect_texture_path()
             for image_id in (_BG_FLAG_SHADOW, _BG_FLAG_FILL):
                 image = self.getControl(image_id)
                 if isinstance(image, xbmcgui.ControlImage):
                     image.setImage(flag_texture)
-                image.setVisible(show_report)
             flag_button = self.getControl(FLAG_BUTTON_ID)
             if isinstance(flag_button, xbmcgui.ControlButton):
                 flag_button.setLabel(ADDON.getLocalizedString(STR_REPORT))
-            flag_button.setVisible(show_report)
         except Exception as e:
             xbmc.log('[TheIntroDB] Report pill setup failed: {}'.format(e), xbmc.LOGWARNING)
 
@@ -224,6 +233,7 @@ class SkipOverlay(xbmcgui.WindowXMLDialog):
         worker.start()
 
     def _run_flag(self, callback: Callable[[], bool]) -> None:
+        """Run the report off the GUI thread, and remember one that was taken."""
         reported = False
         try:
             reported = bool(callback())

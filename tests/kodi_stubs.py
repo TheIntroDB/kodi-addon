@@ -93,18 +93,26 @@ class Action(object):
 
 
 class Control(object):
+    """A control as Kodi drives it.
+
+    Kodi's `Control.setVisible` only moves the force-hidden flag (CGUIControl::SetVisible
+    is called from Python with setVisState false), so it can hide a control but never
+    show one whose skin `<visible>` condition is false. Nothing here should be trusted
+    to make a condition-hidden control appear — the report pill is driven by a window
+    property for exactly that reason.
+    """
+
     def __init__(self, control_id):
         self.control_id = control_id
-        self.visible = None
         self.label = None
         self.image = None
         self.enabled = None
+        self.force_hidden = False
+        self.set_visible_calls = []
 
     def setVisible(self, visible):
-        self.visible = visible
-
-    def isVisible(self):
-        return bool(self.visible)
+        self.set_visible_calls.append(visible)
+        self.force_hidden = not visible
 
     def setLabel(self, label):
         self.label = label
@@ -136,7 +144,18 @@ class WindowXMLDialog(object):
     def __init__(self, *args, **kwargs):
         self._controls = {}
         self._focus_id = None
+        self._properties = {}
         self.window_closed = False
+
+    def setProperty(self, key, value):
+        """Kodi's CGUIWindow::SetProperty; an empty value clears the property."""
+        if value:
+            self._properties[str(key)] = str(value)
+        else:
+            self._properties.pop(str(key), None)
+
+    def getProperty(self, key):
+        return self._properties.get(str(key), '')
 
     def getControl(self, control_id):
         if control_id not in self._controls:

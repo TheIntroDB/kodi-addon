@@ -3,10 +3,11 @@
 #
 """Unit tests for the report control the skip prompt draws.
 
-Kodi cannot run here, so two things are pinned instead: the XML both resolutions
-ship — the pill sits under the skip pill and starts hidden, so the mark-intro
-overlay that shares the file never draws it — and the press handling, where
-reporting must not skip and one segment must be reported once.
+Kodi cannot run here, so what is pinned instead is the contract between the XML
+both resolutions ship and the Python that drives it: the pill sits under the skip
+pill and is drawn only while the window property overlay.py sets is non-empty, so
+the mark-intro overlay that shares the file never draws it. The press handling is
+covered too, where reporting must not skip and one segment must be reported once.
 """
 import os
 import sys
@@ -22,6 +23,7 @@ import kodi_stubs  # noqa: E402
 
 import overlay  # noqa: E402
 import service  # noqa: E402
+import submit_overlay  # noqa: E402
 
 REPO_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RESOLUTIONS = ('1080i', '720p')
@@ -62,7 +64,7 @@ def _overlay_controls(resolution):
             'posy': int(control.findtext('posy')),
             'width': int(control.findtext('width')),
             'height': int(control.findtext('height')),
-            'hidden': (control.findtext('visible') or '').strip() == 'false',
+            'visible': (control.findtext('visible') or '').strip(),
         }
     return root, group, controls
 
@@ -95,32 +97,57 @@ class OverlayLayoutTests(unittest.TestCase):
             self.assertLessEqual(
                 report['posy'] + report['height'], int(group.findtext('height')), resolution)
 
-    def test_the_report_pill_starts_hidden_and_the_skip_pill_does_not(self):
-        # The mark-intro overlay reuses this XML and has nothing to report, so the
-        # report controls ship hidden and Python shows them where reporting is
-        # offered.
+    def test_the_report_pill_is_driven_by_the_window_property_the_addon_sets(self):
+        # Kodi's Control.setVisible cannot show a control whose <visible> condition is
+        # false — it only moves the force-hidden flag — so the pill's visibility is a
+        # condition reading a window property. The mark-intro overlay shares this XML
+        # and never sets that property, so it never draws the pill.
+        expected = '!String.IsEmpty(Window.Property({}))'.format(overlay.REPORT_PROPERTY)
         for resolution in RESOLUTIONS:
             _root, _group, controls = _overlay_controls(resolution)
-            self.assertTrue(controls[REPORT_BUTTON]['hidden'], resolution)
+            self.assertEqual(expected, controls[REPORT_BUTTON]['visible'], resolution)
             for image_id in (overlay._BG_FLAG_SHADOW, overlay._BG_FLAG_FILL):
-                self.assertTrue(controls[image_id]['hidden'], resolution)
-            self.assertFalse(controls[SKIP_BUTTON]['hidden'], resolution)
+                self.assertEqual(expected, controls[image_id]['visible'], resolution)
+            # The skip pill carries no condition: nothing hides it but its own code.
+            self.assertEqual('', controls[SKIP_BUTTON]['visible'], resolution)
             for image_id in SKIP_IMAGES:
-                self.assertFalse(controls[image_id]['hidden'], resolution)
+                self.assertEqual('', controls[image_id]['visible'], resolution)
 
 
 class ReportPressTests(unittest.TestCase):
-    def test_the_report_pill_is_shown_only_when_reporting_is_offered(self):
+    def test_the_report_pill_is_offered_only_when_reporting_is_available(self):
         offered = _window(flag_callback=lambda: True)
         offered.onInit()
-        self.assertTrue(offered.getControl(overlay.FLAG_BUTTON_ID).isVisible())
+        self.assertEqual('1', offered.getProperty(overlay.REPORT_PROPERTY))
         self.assertEqual('string-32043', offered.getControl(overlay.FLAG_BUTTON_ID).label)
+        for image_id in (overlay._BG_FLAG_SHADOW, overlay._BG_FLAG_FILL):
+            self.assertIsNotNone(offered.getControl(image_id).image)
 
         plain = _window()
         plain.onInit()
-        self.assertFalse(plain.getControl(overlay.FLAG_BUTTON_ID).isVisible())
-        for image_id in (overlay._BG_FLAG_SHADOW, overlay._BG_FLAG_FILL):
-            self.assertFalse(plain.getControl(image_id).isVisible())
+        self.assertEqual('', plain.getProperty(overlay.REPORT_PROPERTY))
+
+        # Neither prompt drives the pill with setVisible: Kodi ignores it for a
+        # control whose <visible> condition is false, which is the bug this shape
+        # exists to avoid.
+        for window in (offered, plain):
+            for control_id in (overlay.FLAG_BUTTON_ID, overlay._BG_FLAG_SHADOW, overlay._BG_FLAG_FILL):
+                self.assertEqual([], window.getControl(control_id).set_visible_calls)
+
+    def test_the_mark_overlay_never_offers_the_report_pill(self):
+        # The mark-intro pill reuses overlay.xml, so it must leave the property the
+        # report pill's condition reads unset, and draw no pill of its own.
+        class _AbortingMonitor(kodi_stubs.Monitor):
+            def waitForAbort(self, timeout=None):
+                return True
+
+        wnd = submit_overlay.SubmitMarkOverlay(
+            'overlay.xml', kodi_stubs.ADDON_PATH, 'default', '1080i',
+            label_text='Mark Intro Start', player=None, monitor=_AbortingMonitor())
+        wnd.onInit()
+
+        self.assertEqual('', wnd.getProperty(overlay.REPORT_PROPERTY))
+        self.assertEqual([], wnd.getControl(overlay.FLAG_BUTTON_ID).set_visible_calls)
 
     def test_pressing_report_reports_and_leaves_the_pill_open(self):
         calls = []
