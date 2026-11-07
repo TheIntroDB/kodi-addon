@@ -12,13 +12,14 @@
             <posx>1060</posx>
             <posy>580</posy>
             <width>200</width>
-            <height>38</height>
+            <height>82</height>
 
             <animation effect="slide" start="32,0" end="0,0" time="260" tween="cubic" easing="out">WindowOpen</animation>
             <animation effect="fade" start="0" end="100" time="260">WindowOpen</animation>
             <animation effect="slide" start="0,0" end="32,0" time="200" tween="cubic" easing="in">WindowClose</animation>
             <animation effect="fade" start="100" end="0" time="200">WindowClose</animation>
 
+            <!-- Skip pill (primary) -->
             <control type="image" id="3003">
                 <posx>1</posx>
                 <posy>2</posy>
@@ -50,6 +51,49 @@
                 <texturefocus colordiffuse="FFFFFFFF" border="12">rounded_rect.png</texturefocus>
                 <texturenofocus colordiffuse="FFF8F8F8" border="12">rounded_rect.png</texturenofocus>
                 <label>Skip intro</label>
+            </control>
+
+            <!-- Report pill (secondary), directly under the skip pill. Drawn only
+                 when the prompt offers reporting: overlay.py sets the window
+                 property the condition below reads. It is a condition rather than
+                 setVisible because Kodi's Control.setVisible can only force a
+                 control hidden, never show one its skin condition hides — and
+                 this XML is shared with the mark-intro overlay, which must not
+                 draw the pill. -->
+            <control type="image" id="3005">
+                <posx>1</posx>
+                <posy>46</posy>
+                <width>200</width>
+                <height>38</height>
+                <aspectratio>stretch</aspectratio>
+                <texture colordiffuse="55000000" border="12">rounded_rect.png</texture>
+                <visible>!String.IsEmpty(Window.Property(tidb_report))</visible>
+            </control>
+
+            <control type="image" id="3006">
+                <posx>0</posx>
+                <posy>44</posy>
+                <width>200</width>
+                <height>38</height>
+                <aspectratio>stretch</aspectratio>
+                <texture colordiffuse="B0000000" border="12">rounded_rect.png</texture>
+                <visible>!String.IsEmpty(Window.Property(tidb_report))</visible>
+            </control>
+
+            <control type="button" id="3002">
+                <posx>0</posx>
+                <posy>44</posy>
+                <width>200</width>
+                <height>38</height>
+                <align>center</align>
+                <aligny>center</aligny>
+                <font>font12</font>
+                <textcolor>FFF0F0F0</textcolor>
+                <focusedcolor>FFFFFFFF</focusedcolor>
+                <texturefocus colordiffuse="FF3A3A3A" border="12">rounded_rect.png</texturefocus>
+                <texturenofocus colordiffuse="B0000000" border="12">rounded_rect.png</texturenofocus>
+                <label>Report</label>
+                <visible>!String.IsEmpty(Window.Property(tidb_report))</visible>
             </control>
         </control>
     </controls>

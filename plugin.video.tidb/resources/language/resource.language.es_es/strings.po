@@ -131,6 +131,10 @@ msgctxt "#32039"
 msgid "Auto-skip preview segments"
 msgstr "Saltar avances automáticamente"
 
+msgctxt "#32040"
+msgid "Hide skip button after (seconds, 0 = keep until segment ends)"
+msgstr "Ocultar el botón de omitir después de (segundos, 0 = mantener hasta el final del segmento)"
+
 msgctxt "#32041"
 msgid "Test API key"
 msgstr "Probar clave de API"
@@ -138,3 +142,15 @@ msgstr "Probar clave de API"
 msgctxt "#32042"
 msgid "Enable, then press OK to close settings and see the result"
 msgstr "Actívala y luego pulsa Aceptar para cerrar los ajustes y ver el resultado"
+
+msgctxt "#32043"
+msgid "Report"
+msgstr "Reportar"
+
+msgctxt "#32044"
+msgid "Show a Report button under the skip prompt (needs API key)"
+msgstr "Mostrar un botón Reportar bajo el botón de omitir (requiere clave API)"
+
+msgctxt "#32045"
+msgid "Reporting"
+msgstr "Informes"

@@ -61,6 +61,8 @@ On each new playback, the add-on reads what Kodi exposes for the current item th
 
 It then calls TheIntroDB, retrieves segment **start** and **end** times, waits until the segment window begins, and either shows the skip overlay or seeks automatically depending on your settings.
 
+When the **Report button** is enabled and an API key is set, the skip prompt also offers a **Report** pill under the skip pill. Pressing it reports the media (and, for an episode, the episode being watched) to TheIntroDB as having a wrong segment. Reporting does not skip, so the skip pill stays on offer, and each prompt reports a segment once.
+
 ## Configuration
 
 TheIntroDB Kodi Addon includes a few settings to adjust behavior:
@@ -69,6 +71,7 @@ TheIntroDB Kodi Addon includes a few settings to adjust behavior:
 - **Extra seconds after segment end**: Adds a small offset to the skip target
 - **Enable lookups**: Turns TheIntroDB requests on or off
 - **API key**: Lets you use your TheIntroDB API key.
+- **Report button**: Shows a **Report** button under the skip prompt, for telling TheIntroDB that a segment is wrong. Needs an API key: the report is a vote on your account, so nothing can be sent without one.
 - **Debug options**: Enables verbose logging and on-screen notifications
 
 ---

@@ -3,40 +3,22 @@
 #
 """Unit tests for the API client's v4 request shape.
 
-Kodi's Python modules don't exist off-device, so they are stubbed before the
-addon module is imported.
+Kodi's Python modules don't exist off-device, so the shared stubs in
+`kodi_stubs` are imported (and installed) before the addon module is.
 """
 import json
 import os
 import sys
 import time
-import types
 import unittest
 from email.message import Message
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'plugin.video.tidb'))
 
-_SETTINGS = {}
+import kodi_stubs  # noqa: E402
 
-
-class _Addon:
-    def getAddonInfo(self, key):
-        return 'plugin.video.tidb' if key == 'id' else ''
-
-    def getSetting(self, key):
-        return _SETTINGS.get(key, '')
-
-
-xbmc_stub = types.ModuleType('xbmc')
-xbmc_stub.LOGINFO = 0
-xbmc_stub.LOGWARNING = 1
-xbmc_stub.LOGERROR = 2
-xbmc_stub.log = lambda *args, **kwargs: None
-xbmc_stub.Monitor = object
-xbmcaddon_stub = types.ModuleType('xbmcaddon')
-xbmcaddon_stub.Addon = _Addon
-sys.modules.setdefault('xbmc', xbmc_stub)
-sys.modules.setdefault('xbmcaddon', xbmcaddon_stub)
+_SETTINGS = kodi_stubs.SETTINGS
 
 import introdb  # noqa: E402
 
@@ -57,6 +39,20 @@ class _HttpError(introdb.HTTPError):
 
     def read(self):
         return self._body.encode('utf-8')
+
+
+class _FakeResponse:
+    """What urlopen hands back on success: only read() is used."""
+
+    def __init__(self, body='', status=200):
+        self._body = body
+        self.status = status
+
+    def read(self):
+        return self._body.encode('utf-8')
+
+    def getcode(self):
+        return self.status
 
 
 class ApiVersionTests(unittest.TestCase):
@@ -245,6 +241,114 @@ class Submit429Tests(unittest.TestCase):
         remaining = self._submit(_headers(X_RateLimit_Reset=999999))
         self.assertGreater(remaining, 0)
         self.assertLessEqual(remaining, introdb.RATE_RESET_CLAMP)
+
+
+class FlagMediaTests(unittest.TestCase):
+    """A report is the account's own vote, so the request carries the key and the
+    addressing the lookup for the same item used."""
+
+    def setUp(self):
+        self._original_urlopen = introdb.urlopen
+        self._original_wait = introdb._wait_rate_limit
+        introdb._wait_rate_limit = lambda: True
+        introdb._rate_limit_until = 0.0
+        _SETTINGS['introdb_api_key'] = 'theintrodb:user_1:secret'
+        self.requests = []
+
+    def tearDown(self):
+        introdb.urlopen = self._original_urlopen
+        introdb._wait_rate_limit = self._original_wait
+        introdb._rate_limit_until = 0.0
+        _SETTINGS.pop('introdb_api_key', None)
+
+    def _respond(self, body='{"message":"Media flagged successfully"}', status=200, headers=None):
+        def fake(request, timeout=None):
+            self.requests.append(request)
+            if status >= 400:
+                raise _HttpError(status, headers or _headers(), body)
+            return _FakeResponse(body, status)
+        introdb.urlopen = fake
+
+    def _sent(self):
+        request = self.requests[-1]
+        return request.full_url, request.headers, json.loads(request.data.decode('utf-8'))
+
+    def test_a_report_carries_the_key_and_the_lookup_addressing(self):
+        self._respond()
+        accepted, message = introdb.flag_media(tvdb_id=73871, season=7, episode=1)
+        self.assertTrue(accepted)
+        self.assertEqual('Media flagged successfully', message)
+
+        url, headers, body = self._sent()
+        self.assertEqual('https://api.theintrodb.org/v4/flag-vote', url)
+        self.assertEqual('POST', self.requests[-1].get_method())
+        self.assertEqual('application/json', headers.get('Content-type'))
+        self.assertEqual('Bearer theintrodb:user_1:secret', headers.get('Authorization'))
+        # The id the lookup asked with, and the numbers in that id's own order.
+        self.assertEqual({'tvdb_id': 73871, 'type': 'tv', 'season': 7, 'episode': 1}, body)
+
+    def test_a_movie_report_omits_the_episode_coordinates(self):
+        self._respond()
+        accepted, _message = introdb.flag_media(tvdb_id=169, is_movie=True)
+        self.assertTrue(accepted)
+        self.assertEqual({'tvdb_id': 169, 'type': 'movie'}, self._sent()[2])
+
+    def test_a_report_falls_back_to_tmdb_then_imdb(self):
+        self._respond()
+        introdb.flag_media(tmdb_id=1297842, is_movie=True)
+        self.assertEqual({'tmdb_id': 1297842, 'type': 'movie'}, self._sent()[2])
+        introdb.flag_media(imdb_id='tt27613895', is_movie=True)
+        self.assertEqual({'imdb_id': 'tt27613895', 'type': 'movie'}, self._sent()[2])
+
+    def test_a_report_needs_a_key_and_an_identifier(self):
+        _SETTINGS.pop('introdb_api_key')
+        accepted, message = introdb.flag_media(tvdb_id=73871, season=1, episode=1)
+        self.assertFalse(accepted)
+        self.assertIn('API key', message)
+
+        _SETTINGS['introdb_api_key'] = 'theintrodb:user_1:secret'
+        accepted, message = introdb.flag_media(season=1, episode=1)
+        self.assertFalse(accepted)
+        self.assertIn('TVDB, TMDB or IMDb', message)
+
+    def test_an_episode_report_needs_usable_numbers(self):
+        # The API reads the numbers in the identified id's order, so a report
+        # without them cannot name an episode; it is refused before the request.
+        self._respond()
+        accepted, message = introdb.flag_media(tvdb_id=73871)
+        self.assertFalse(accepted)
+        self.assertIn('Season and episode', message)
+        self.assertEqual([], self.requests)
+
+    def test_a_paused_budget_skips_the_request(self):
+        introdb._wait_rate_limit = lambda: False
+        accepted, message = introdb.flag_media(tvdb_id=73871, season=1, episode=1)
+        self.assertFalse(accepted)
+        self.assertIn('Rate limited', message)
+        self.assertEqual([], self.requests)
+
+    def test_a_repeat_report_is_a_settled_outcome(self):
+        # One vote per account per media: the segment is already known about,
+        # which is the outcome the viewer wanted.
+        self._respond(body='{"error":"You have already voted to flag this media"}', status=409)
+        accepted, message = introdb.flag_media(tvdb_id=73871, season=1, episode=1)
+        self.assertTrue(accepted)
+        self.assertIn('Already reported', message)
+
+    def test_a_refusal_is_reported_with_the_api_message(self):
+        self._respond(body='{"error":"Invalid API key"}', status=401)
+        accepted, message = introdb.flag_media(tvdb_id=73871, season=1, episode=1)
+        self.assertFalse(accepted)
+        self.assertEqual('Invalid API key', message)
+
+    def test_a_rate_limit_pauses_the_budget_the_lookups_share(self):
+        self._respond(body='{"error":"Rate limit exceeded"}', status=429,
+                      headers=_headers(Retry_After=30))
+        accepted, _message = introdb.flag_media(tvdb_id=73871, season=1, episode=1)
+        self.assertFalse(accepted)
+        remaining = introdb._rate_limit_until - time.time()
+        self.assertGreater(remaining, 25)
+        self.assertLessEqual(remaining, 30)
 
 
 if __name__ == '__main__':

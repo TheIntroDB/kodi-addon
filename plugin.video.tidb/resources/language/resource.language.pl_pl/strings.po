@@ -131,6 +131,10 @@ msgctxt "#32039"
 msgid "Auto-skip preview segments"
 msgstr "Automatycznie pomijaj zapowiedzi"
 
+msgctxt "#32040"
+msgid "Hide skip button after (seconds, 0 = keep until segment ends)"
+msgstr "Ukryj przycisk pomijania po (sekundach, 0 = pozostaw do końca segmentu)"
+
 msgctxt "#32041"
 msgid "Test API key"
 msgstr "Przetestuj klucz API"
@@ -138,3 +142,15 @@ msgstr "Przetestuj klucz API"
 msgctxt "#32042"
 msgid "Enable, then press OK to close settings and see the result"
 msgstr "Włącz, a następnie naciśnij OK, aby zamknąć ustawienia i zobaczyć wynik"
+
+msgctxt "#32043"
+msgid "Report"
+msgstr "Zgłoś"
+
+msgctxt "#32044"
+msgid "Show a Report button under the skip prompt (needs API key)"
+msgstr "Pokaż przycisk Zgłoś pod przyciskiem pomijania (wymaga klucza API)"
+
+msgctxt "#32045"
+msgid "Reporting"
+msgstr "Zgłaszanie"

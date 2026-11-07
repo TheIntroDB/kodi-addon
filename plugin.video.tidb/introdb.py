@@ -639,6 +639,108 @@ def submit_segment(tmdb_id: Optional[Union[str, int]] = None, imdb_id: Optional[
         return False, str(e)
 
 
+def flag_media(tvdb_id: Optional[Union[str, int]] = None, tmdb_id: Optional[Union[str, int]] = None, imdb_id: Optional[str] = None, season: Optional[Union[str, int]] = None,
+               episode: Optional[Union[str, int]] = None, is_movie: bool = False) -> Tuple[bool, str]:
+    """Report this media's segments as incorrect through POST /flag-vote.
+
+    The report is addressed the way a lookup for the same item is — the best id
+    available, and for an episode the numbers in that id's own order — so the
+    vote lands on the media and episode whose segments were served, rather than
+    on a neighbouring episode of another numbering.
+
+    The vote is the account's own, so it is sent with the configured key; a
+    report without one is refused here instead of becoming a doomed request.
+    A repeat is a settled outcome rather than a failure: TheIntroDB keys one
+    vote per account per media, so there is nothing left to do about a segment
+    it has already been told about.
+
+    Returns (accepted, message) tuple.
+    """
+    api_key = _get_api_key()
+    if not api_key:
+        return False, 'API key required to report a segment. Set it in addon settings.'
+
+    has_tvdb = _valid_numeric_id(tvdb_id)
+    if not has_tvdb and not _valid_tmdb(tmdb_id) and not _normalize_imdb(imdb_id):
+        return False, 'Need a TVDB, TMDB or IMDb ID to report.'
+
+    payload: Dict[str, Any] = {'type': 'movie' if is_movie else 'tv'}
+
+    # TVDB is the media's identity, so it is the addressing to prefer. A tmdb_id
+    # or imdb_id request is read in that provider's own numbering — the same
+    # addressing the lookup for this item used, so the two cannot disagree about
+    # which episode is being reported.
+    if has_tvdb:
+        payload['tvdb_id'] = int(str(tvdb_id).strip())
+    elif _valid_tmdb(tmdb_id):
+        payload['tmdb_id'] = int(str(tmdb_id).strip())
+    else:
+        payload['imdb_id'] = _normalize_imdb(imdb_id)
+
+    if not is_movie:
+        s, e = _episode_nums(season, episode)
+        if s is None or e is None or s < 0 or e <= 0:
+            return False, 'Season and episode are required to report an episode.'
+        payload['season'] = s
+        payload['episode'] = e
+
+    if not _wait_rate_limit():
+        return False, 'Rate limited. Try again later.'
+
+    url = '{}/flag-vote'.format(API_BASE)
+    xbmc.log('[TheIntroDB] Reporting segment: {} -> {}'.format(url, payload), xbmc.LOGINFO)
+
+    body_bytes = json.dumps(payload).encode('utf-8')
+    req = Request(url, data=body_bytes, method='POST')
+    req.add_header('Content-Type', 'application/json')
+    req.add_header('Accept', 'application/json')
+    req.add_header('User-Agent', USER_AGENT)
+    req.add_header('Authorization', 'Bearer {}'.format(api_key))
+
+    global _rate_limit_until
+    try:
+        resp = urlopen(req, timeout=10)
+        resp_body = resp.read().decode('utf-8')
+        _log_resp(resp_body)
+        try:
+            data = json.loads(resp_body)
+        except ValueError:
+            data = {}
+        message = ''
+        if isinstance(data, dict):
+            message = data.get('message') or data.get('error') or ''
+        return True, message or 'Reported — TheIntroDB will review this segment.'
+    except HTTPError as e:
+        err_body = ''
+        err_msg = ''
+        try:
+            err_body = e.read().decode('utf-8')
+            err_data = json.loads(err_body)
+            err_msg = err_data.get('error') or err_data.get('message') or ''
+        except Exception:
+            err_msg = ''
+        if not err_msg:
+            err_msg = 'HTTP {}'.format(e.code)
+        if e.code == 409:
+            # One vote per account per media: this one is already in, which is
+            # the outcome the viewer wanted, so it is not reported as a fault.
+            return True, 'Already reported — TheIntroDB knows about this segment.'
+        if e.code == 429:
+            # A 429 spends the same budget the lookups draw on, so the pause is
+            # set once here and every request honours it.
+            retry = _retry_after_seconds(e, err_body)
+            with _rate_limit_lock:
+                _rate_limit_until = time.time() + retry
+        xbmc.log('[TheIntroDB] Report failed: {}'.format(err_msg), xbmc.LOGWARNING)
+        return False, err_msg
+    except URLError as e:
+        xbmc.log('[TheIntroDB] Report network error: {}'.format(e.reason), xbmc.LOGWARNING)
+        return False, 'Network error: {}'.format(e.reason)
+    except Exception as e:
+        xbmc.log('[TheIntroDB] Report error: {}'.format(e), xbmc.LOGERROR)
+        return False, str(e)
+
+
 def query_all_segments(tmdb_id: Optional[Union[str, int]] = None, imdb_id: Optional[str] = None, season: Optional[Union[str, int]] = None, episode: Optional[Union[str, int]] = None, is_movie: bool = False, duration_ms: Optional[Union[str, int]] = None, tvdb_id: Optional[Union[str, int]] = None, mapping: Optional[str] = None, tvdb_episode_id: Optional[Union[str, int]] = None) -> Dict[str, Any]:
     # returns dict with all segment types and their segments
     if not _is_enabled():
