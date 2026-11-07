@@ -155,3 +155,7 @@ msgstr "Afficher un bouton Signaler sous le bouton Passer (clé API requise)"
 msgctxt "#32045"
 msgid "Reporting"
 msgstr "Signalement"
+
+msgctxt "#32046"
+msgid "Hide the Report button under the skip prompt"
+msgstr "Masquer le bouton Signaler sous le bouton Passer"

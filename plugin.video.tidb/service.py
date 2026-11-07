@@ -9,6 +9,7 @@ from functools import partial
 from typing import List, Dict, Optional, Any, Tuple, Callable
 
 from player import TIDBPlayer
+import addon_settings
 import skipper
 import overlay as overlay_mod
 import submit_overlay
@@ -39,20 +40,23 @@ class TIDBMonitor(xbmc.Monitor):
 
 def _debug_osd(message: str) -> None:
     # optional toast spam for debugging
-    if ADDON.getSetting('debug_osd') == 'true':
-        xbmc.executebuiltin('Notification(TIDB, {}, 1500)'.format(message))
+    if addon_settings.setting_bool('debug_osd'):
+        _toast(message, 1500)
 
 
-def _fresh_bool(key: str) -> bool:
-    # read setting again from disk so gui changes apply without restart
-    try:
-        return xbmcaddon.Addon(_ADDON_ID).getSetting(key) == 'true'
-    except Exception:
-        return ADDON.getSetting(key) == 'true'
+def _toast(message: str, milliseconds: int = 3000) -> None:
+    """Show a toast.
+
+    Notification is a Kodi builtin whose arguments are comma-separated, and a
+    message can carry commas of its own (an upstream refusal does), so it is
+    flattened first.
+    """
+    text = ' '.join(str(message).split()).replace(',', ' ')
+    xbmc.executebuiltin('Notification(TheIntroDB, {}, {})'.format(text, milliseconds))
 
 
 def _debug_logging() -> bool:
-    return ADDON.getSetting('debug_logging') == 'true'
+    return addon_settings.setting_bool('debug_logging')
 
 
 def _run_api_key_test() -> None:
@@ -77,6 +81,7 @@ class PlaybackSession:
     submit_prompted_this_pause: bool
     submit_done_for_file: bool
     last_seen_pause_count: int
+    submit_block_notified: set
 
     def __init__(self) -> None:
         self.reset()
@@ -93,6 +98,9 @@ class PlaybackSession:
         self.submit_prompted_this_pause = False
         self.submit_done_for_file = False
         self.last_seen_pause_count = 0
+        # Reasons already explained to the viewer for this file, so a pause does
+        # not repeat the same toast.
+        self.submit_block_notified = set()
 
 
 # ── Segment collection ────────────────────────────────────────────────────
@@ -101,7 +109,7 @@ def _collect_enabled_segments(all_segments: Dict[str, Any]) -> List[Dict[str, An
     """Gather all enabled segments from the API response, sorted chronologically."""
     result = []
     for segment_type in ('intro', 'recap', 'preview', 'credits'):
-        if not _fresh_bool('enable_{}'.format(segment_type)):
+        if not addon_settings.setting_bool('enable_{}'.format(segment_type)):
             continue
         segments = all_segments.get(segment_type, [])
         for idx, seg in enumerate(segments):
@@ -189,7 +197,7 @@ def _handle_segment(segment: Dict[str, Any], segment_idx: int, player: TIDBPlaye
     segment_name = segment_names.get(segment_type, segment_type.title())
     overlay_type = segment_type
 
-    if _fresh_bool('auto_skip_{}'.format(segment_type)):
+    if addon_settings.setting_bool('auto_skip_{}'.format(segment_type)):
         skipper.execute_skip(player, api_start, api_end, filename, segment_type)
         if REPORTER:
             REPORTER.track('segment_auto_skipped', {'segment_type': segment_type})
@@ -258,17 +266,18 @@ def _handle_next_episode(player: TIDBPlayer, monitor: xbmc.Monitor, session: Pla
 def _report_enabled() -> bool:
     """Whether the report pill should be offered with the skip prompt.
 
-    A report is sent with the configured key, so the pill is drawn only when one
-    is set: TheIntroDB refuses an anonymous vote, and the control would otherwise
-    offer the viewer nothing but a failure.
+    A configured key is the gate: the report is sent with it, and TheIntroDB refuses
+    an anonymous vote, so a viewer who has a key has already opted in. (The Silo
+    plugin needs an explicit switch because there the key belongs to the server
+    rather than to the viewer.)
+
+    Hiding it is the switch, not showing it: an install that never saved the setting
+    gets the pill, which a "show" switch defaulting to off would not do — Kodi writes
+    every setting, defaults included, when the settings dialog closes.
     """
-    if not _fresh_bool('enable_report_button'):
+    if addon_settings.setting_bool('hide_report_button'):
         return False
-    try:
-        api_key = (xbmcaddon.Addon(_ADDON_ID).getSetting('introdb_api_key') or '').strip()
-    except Exception:
-        api_key = (ADDON.getSetting('introdb_api_key') or '').strip()
-    return bool(api_key)
+    return bool(addon_settings.setting('introdb_api_key').strip())
 
 
 def _report_segment(session: PlaybackSession) -> bool:
@@ -286,10 +295,7 @@ def _report_segment(session: PlaybackSession) -> bool:
         is_movie=media_ids.get('is_movie', False),
     )
     xbmc.log('[TheIntroDB] Report result: {}'.format(message), xbmc.LOGINFO)
-    # The toast is a Kodi builtin, whose arguments are comma-separated, and an
-    # upstream refusal can carry commas of its own — so the message is flattened.
-    toast = ' '.join(str(message).split()).replace(',', ' ')
-    xbmc.executebuiltin('Notification(TheIntroDB, {}, 3000)'.format(toast))
+    _toast(message)
     if success and REPORTER:
         REPORTER.track('segment_reported', {})
     return success
@@ -309,6 +315,14 @@ def _handle_submit_tick(session: PlaybackSession, player: TIDBPlayer, monitor: x
     if current_pause_count > session.last_seen_pause_count:
         session.submit_prompted_this_pause = False
         session.last_seen_pause_count = current_pause_count
+
+    # A viewer who enabled submitting and paused expects the prompt; when it is not
+    # coming, say why once per file rather than staying silent.
+    block_reason = _submit_block_reason(is_paused, all_segments)
+    if block_reason and block_reason not in session.submit_block_notified:
+        session.submit_block_notified.add(block_reason)
+        xbmc.log('[TheIntroDB] Submit not offered: {}'.format(block_reason), xbmc.LOGINFO)
+        _toast(block_reason, 4000)
 
     if not _should_offer_submit(session, is_paused, all_segments):
         return False
@@ -336,17 +350,30 @@ def _handle_submit_tick(session: PlaybackSession, player: TIDBPlayer, monitor: x
     return _mark_end_and_submit(session, player, monitor, current_time, media_ids)
 
 
+def _submit_block_reason(is_paused: bool, all_segments: Dict[str, Any]) -> Optional[str]:
+    """Why no submit prompt is on offer, when the viewer would expect one.
+
+    Only the two states a viewer cannot see for themselves are reported: a missing
+    key, and a title that already has an intro — which is why the prompt stays away
+    on content that is already covered. Being past the window, or already prompted
+    for this pause, is left silent.
+    """
+    if not addon_settings.setting_bool('enable_submissions') or not is_paused:
+        return None
+    if not addon_settings.setting('introdb_api_key').strip():
+        return 'Submitting needs an API key — add one in the add-on settings.'
+    if bool(all_segments.get('intro')):
+        return 'TheIntroDB already has an intro for this title — use Report if it is wrong.'
+    return None
+
+
 def _should_offer_submit(session: PlaybackSession, is_paused: bool, all_segments: Dict[str, Any]) -> bool:
     """Guard: all preconditions for showing the submit prompt."""
-    if not _fresh_bool('enable_submissions'):
+    if not addon_settings.setting_bool('enable_submissions'):
         if is_paused and not session.submit_prompted_this_pause:
             xbmc.log('[TheIntroDB] Submit blocked: enable_submissions is off', xbmc.LOGINFO)
         return False
-    try:
-        api_key = (xbmcaddon.Addon(_ADDON_ID).getSetting('introdb_api_key') or '').strip()
-    except Exception:
-        api_key = (ADDON.getSetting('introdb_api_key') or '').strip()
-    if not api_key:
+    if not addon_settings.setting('introdb_api_key').strip():
         if is_paused and not session.submit_prompted_this_pause:
             xbmc.log('[TheIntroDB] Submit blocked: no API key configured', xbmc.LOGINFO)
         return False
@@ -376,9 +403,7 @@ def _mark_start(session: PlaybackSession, player: TIDBPlayer, monitor: xbmc.Moni
     if pressed:
         session.submit_start_sec = current_time
         xbmc.log('[TheIntroDB] Marked intro start: {:.1f}s'.format(current_time), xbmc.LOGINFO)
-        xbmc.executebuiltin(
-            'Notification(TheIntroDB, Start marked at {:.0f}s — pause at end of intro, 2000)'.format(
-                current_time))
+        _toast('Start marked at {:.0f}s — pause at end of intro'.format(current_time), 2000)
 
 
 def _mark_end_and_submit(session: PlaybackSession, player: TIDBPlayer, monitor: xbmc.Monitor, current_time: float, media_ids: Dict[str, Any]) -> bool:
@@ -402,13 +427,11 @@ def _mark_end_and_submit(session: PlaybackSession, player: TIDBPlayer, monitor: 
 
     # Validate duration (API: intro must be 5–200s)
     if duration < 5.0:
-        xbmc.executebuiltin(
-            'Notification(TheIntroDB, Too short — must be at least 5 seconds, 3000)')
+        _toast('Too short — must be at least 5 seconds')
         session.submit_start_sec = None
         return False
     if duration > 200.0:
-        xbmc.executebuiltin(
-            'Notification(TheIntroDB, Too long — intro max is 200 seconds, 3000)')
+        _toast('Too long — intro max is 200 seconds')
         session.submit_start_sec = None
         return False
 
@@ -437,11 +460,11 @@ def _mark_end_and_submit(session: PlaybackSession, player: TIDBPlayer, monitor: 
         video_duration_ms=media_ids.get('duration_ms'),
     )
     if success:
-        xbmc.executebuiltin('Notification(TheIntroDB, {}, 3000)'.format(msg))
+        _toast(msg, 3000)
         session.submit_done_for_file = True
         return True  # invalidate cache
     else:
-        xbmc.executebuiltin('Notification(TheIntroDB, {}, 4000)'.format(msg))
+        _toast(msg, 4000)
         session.submit_start_sec = None
         return False
 
@@ -462,7 +485,7 @@ def _run_service() -> None:
             break
 
         # ── API key test button (settings) ──
-        if _fresh_bool('test_api_key_now'):
+        if addon_settings.setting_bool('test_api_key_now'):
             try:
                 xbmcaddon.Addon(_ADDON_ID).setSetting('test_api_key_now', 'false')
             except Exception:
@@ -508,9 +531,9 @@ def _run_service() -> None:
         m_episode = media_ids.get('episode')
         m_movie = media_ids.get('is_movie', False)
 
-        introdb_on = _fresh_bool('introdb_enabled')
+        introdb_on = addon_settings.setting_bool('introdb_enabled', True)
         if _debug_logging():
-            _raw = xbmcaddon.Addon(_ADDON_ID).getSetting('introdb_enabled')
+            _raw = addon_settings.setting('introdb_enabled')
             xbmc.log('[TheIntroDB] introdb_enabled raw={!r} lookups_on={}'.format(
                 _raw, introdb_on), xbmc.LOGINFO)
 

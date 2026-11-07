@@ -154,3 +154,7 @@ msgstr "在跳过按钮下方显示举报按钮（需要 API 密钥）"
 msgctxt "#32045"
 msgid "Reporting"
 msgstr "举报"
+
+msgctxt "#32046"
+msgid "Hide the Report button under the skip prompt"
+msgstr "隐藏跳过按钮下方的举报按钮"

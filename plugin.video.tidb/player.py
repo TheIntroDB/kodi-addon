@@ -8,6 +8,8 @@ import xbmc
 import xbmcaddon
 from typing import Optional, Dict, Any, Tuple
 
+import addon_settings
+
 ADDON = xbmcaddon.Addon()
 
 
@@ -226,7 +228,7 @@ class TIDBPlayer(xbmc.Player):
                     'title': episode.get('title') or '',
                 }
 
-        if next_episode and ADDON.getSetting('debug_logging') == 'true':
+        if next_episode and addon_settings.setting_bool('debug_logging'):
             xbmc.log(
                 '[TheIntroDB] Next episode found: S{}E{} {}'.format(
                     next_episode['season'],
@@ -250,7 +252,7 @@ class TIDBPlayer(xbmc.Player):
         if response and 'error' not in response:
             return True
 
-        if ADDON.getSetting('debug_logging') == 'true':
+        if addon_settings.setting_bool('debug_logging'):
             xbmc.log('[TheIntroDB] Failed to open next episode: {}'.format(response), xbmc.LOGWARNING)
         return False
 
@@ -396,7 +398,7 @@ class TIDBPlayer(xbmc.Player):
         if show_tmdb and (force_tmdb or not ids.get('tmdb_id')):
             old = ids.get('tmdb_id')
             ids['tmdb_id'] = show_tmdb
-            if ADDON.getSetting('debug_logging') == 'true':
+            if addon_settings.setting_bool('debug_logging'):
                 xbmc.log('[TheIntroDB] TV show TMDB resolved: {} -> {} (uniqueid={})'.format(
                     old or '-', show_tmdb, unique), xbmc.LOGINFO)
 
@@ -443,7 +445,7 @@ class TIDBPlayer(xbmc.Player):
         if show_tmdb and (force_tmdb or not ids.get('tmdb_id')):
             old = ids.get('tmdb_id')
             ids['tmdb_id'] = show_tmdb
-            if ADDON.getSetting('debug_logging') == 'true':
+            if addon_settings.setting_bool('debug_logging'):
                 xbmc.log('[TheIntroDB] TV show TMDB resolved (title match): {} -> {} (title={} uniqueid={})'.format(
                     old or '-', show_tmdb, title, unique), xbmc.LOGINFO)
 
@@ -477,7 +479,7 @@ class TIDBPlayer(xbmc.Player):
             })
             item = (response or {}).get('result', {}).get('item') or {}
 
-            if ADDON.getSetting('debug_logging') == 'true':
+            if addon_settings.setting_bool('debug_logging'):
                 xbmc.log('[TheIntroDB] JSON-RPC item: type={} uniqueid={} imdbnumber={}'.format(
                     item.get('type'), item.get('uniqueid'), item.get('imdbnumber')),
                     xbmc.LOGINFO)

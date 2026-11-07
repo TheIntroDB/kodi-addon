@@ -154,3 +154,7 @@ msgstr "Pokaż przycisk Zgłoś pod przyciskiem pomijania (wymaga klucza API)"
 msgctxt "#32045"
 msgid "Reporting"
 msgstr "Zgłaszanie"
+
+msgctxt "#32046"
+msgid "Hide the Report button under the skip prompt"
+msgstr "Ukryj przycisk Zgłoś pod przyciskiem pomijania"

@@ -40,6 +40,11 @@ ACTION_SELECT = 7
 ACTION_PREVIOUS_MENU = 10
 ACTION_BACK = 92
 BUTTON_ID = 3001
+# The report pill's controls, which belong to the skip prompt: this overlay shares
+# overlay.xml with it, so they are hidden here rather than drawn.
+FLAG_BUTTON_ID = 3002
+_BG_FLAG_SHADOW = 3005
+_BG_FLAG_FILL = 3006
 
 _DISPLAY_DURATION = 8.0  # longer than skip since user is paused/deciding
 _POLL_INTERVAL = 0.5
@@ -81,6 +86,13 @@ class SubmitMarkOverlay(xbmcgui.WindowXMLDialog):
         if mon.abortRequested():
             self._dismiss_main_thread()
             return
+
+        # The report pill belongs to the skip prompt, which shares this XML.
+        for control_id in (_BG_FLAG_SHADOW, _BG_FLAG_FILL, FLAG_BUTTON_ID):
+            try:
+                self.getControl(control_id).setVisible(False)
+            except Exception:
+                pass
 
         # Reload pill textures
         try:

@@ -154,3 +154,7 @@ msgstr "Mostrar un botón Reportar bajo el botón de omitir (requiere clave API)
 msgctxt "#32045"
 msgid "Reporting"
 msgstr "Informes"
+
+msgctxt "#32046"
+msgid "Hide the Report button under the skip prompt"
+msgstr "Ocultar el botón Reportar bajo el botón de omitir"
