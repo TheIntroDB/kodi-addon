@@ -1,6 +1,6 @@
 <img align="right" width="88" src="https://raw.githubusercontent.com/TheIntroDB/.github/main/integrations/kodi.png" alt="Kodi">
 
-[![Kodi 19%2B](https://img.shields.io/badge/Kodi-19%2B-17B2E7?style=flat-square&logo=kodi&logoColor=4ade80&labelColor=0d0d0d)](https://kodi.tv)
+[![Kodi 20%2B](https://img.shields.io/badge/Kodi-20%2B-17B2E7?style=flat-square&logo=kodi&logoColor=4ade80&labelColor=0d0d0d)](https://kodi.tv)
 [![License](https://img.shields.io/github/license/TheIntroDB/kodi-addon?style=flat-square&logo=gnu&logoColor=4ade80&label=License&labelColor=0d0d0d&color=038939)](https://github.com/TheIntroDB/kodi-addon/blob/main/LICENSE)
 
 [![Stars](https://img.shields.io/github/stars/TheIntroDB/kodi-addon?style=flat-square&logo=github&logoColor=4ade80&label=Stars&labelColor=0d0d0d&color=038939)](https://github.com/TheIntroDB/kodi-addon/stargazers)
@@ -14,7 +14,7 @@
 
 Kodi service add-on that gets intro, recap, credits, and preview segments from **[TheIntroDB](https://theintrodb.org)** for movies and TV shows and shows a skip button or auto skips for you!
 
-**Requirements:** Kodi 19+. **TVDB metadata is recommended**: TVDB is the API's identity, so it is what the add-on asks with first (TMDB, then IMDb, are fallbacks).
+**Requirements:** Kodi 20+. **TVDB metadata is recommended**: TVDB is the API's identity, so it is what the add-on asks with first (TMDB, then IMDb, are fallbacks).
 
 **Important:** Lookups happen when playback starts. If the current item does not expose a usable **TVDB**, **TMDb** or **IMDb** ID, the add-on cannot match it with TheIntroDB.
 
