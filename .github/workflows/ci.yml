@@ -37,9 +37,14 @@ jobs:
       run: python -m pylint plugin.video.tidb/ tests/ || true
       if: always()
     - name: Run unit tests
+      # -s/-t point discovery at the suite: `unittest discover` from the repository
+      # root finds nothing, because tests/ has no __init__.py and is therefore not
+      # recursed into. Unlike the linters above, this step is deliberately not
+      # `|| true` — the suite passes, so a failure here is a regression worth
+      # blocking on.
       run: |
         if [ -d tests ]; then
-          coverage run -m unittest discover || true
+          coverage run -m unittest discover -s tests -t tests
         fi
       if: always()
     - name: Upload code coverage to CodeCov
