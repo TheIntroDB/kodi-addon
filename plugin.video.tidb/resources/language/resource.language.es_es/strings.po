@@ -131,6 +131,10 @@ msgctxt "#32039"
 msgid "Auto-skip preview segments"
 msgstr "Saltar avances automáticamente"
 
+msgctxt "#32040"
+msgid "Hide skip button after (seconds, 0 = keep until segment ends)"
+msgstr "Ocultar el botón de omitir después de (segundos, 0 = mantener hasta el final del segmento)"
+
 msgctxt "#32041"
 msgid "Test API key"
 msgstr "Probar clave de API"

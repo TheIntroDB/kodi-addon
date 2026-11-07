@@ -131,6 +131,10 @@ msgctxt "#32039"
 msgid "Auto-skip preview segments"
 msgstr "自动跳过预告片段"
 
+msgctxt "#32040"
+msgid "Hide skip button after (seconds, 0 = keep until segment ends)"
+msgstr "多少秒后隐藏跳过按钮（0 = 保持到片段结束）"
+
 msgctxt "#32041"
 msgid "Test API key"
 msgstr "测试 API 密钥"
