@@ -1,5 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Skip pill: 9-slice rounded_rect.png (border must be < half of bar height). Texture paths also set from Python onInit for reliable load. -->
+<!-- Classic pills (the look the add-on shipped before styles existed).
+
+     One <control type="button"> per pill, drawn with the 9-slice texture
+     rounded_rect.png and tinted per pill with colordiffuse — no background <image>
+     controls, because an image cannot follow the label (Kodi only auto-sizes
+     button, togglebutton and grouplist: CGUIButtonControl::GetWidth returns
+     CLAMP(textwidth + 2 * offsetX, min, max)).
+
+     <width min="350" max="390">auto</width>: the box hugs the label, floored at the
+     design width — the widest label the pills can show across the six shipped
+     languages measures 295px in this font (Polish "Pomiń napisy końcowe"), and 350
+     leaves that label room inside the corners — and capped at 390, where a longer
+     translation starts to scroll.
+
+     Kodi works a control's position out from its left edge before the label is
+     measured, so an auto-width control can only be anchored by its left edge. The
+     group is placed so the 350px pill ends where the old 260px pill ended, 50px from
+     the screen edge; the pills grow into the 40px of slack to their right. -->
 <window type="dialog" id="14000">
     <defaultcontrol always="true">3001</defaultcontrol>
     <coordinates>
@@ -9,9 +26,9 @@
     </coordinates>
     <controls>
         <control type="group">
-            <posx>1610</posx>
+            <posx>1520</posx>
             <posy>880</posy>
-            <width>260</width>
+            <width>390</width>
             <height>104</height>
 
             <animation effect="slide" start="40,0" end="0,0" time="260" tween="cubic" easing="out">WindowOpen</animation>
@@ -20,28 +37,10 @@
             <animation effect="fade" start="100" end="0" time="200">WindowClose</animation>
 
             <!-- Skip pill (primary) -->
-            <control type="image" id="3003">
-                <posx>1</posx>
-                <posy>2</posy>
-                <width>260</width>
-                <height>48</height>
-                <aspectratio>stretch</aspectratio>
-                <texture colordiffuse="55000000" border="14">rounded_rect.png</texture>
-            </control>
-
-            <control type="image" id="3004">
-                <posx>0</posx>
-                <posy>0</posy>
-                <width>260</width>
-                <height>48</height>
-                <aspectratio>stretch</aspectratio>
-                <texture colordiffuse="FFF8F8F8" border="14">rounded_rect.png</texture>
-            </control>
-
             <control type="button" id="3001">
                 <posx>0</posx>
                 <posy>0</posy>
-                <width>260</width>
+                <width min="350" max="390">auto</width>
                 <height>48</height>
                 <align>center</align>
                 <aligny>center</aligny>
@@ -57,28 +56,10 @@
                  <visible> condition: Kodi's Control.setVisible can hide a control
                  but never show one a condition hides, so overlay.py decides (and
                  the mark-intro overlay, which shares this XML, hides it). -->
-            <control type="image" id="3005">
-                <posx>1</posx>
-                <posy>58</posy>
-                <width>260</width>
-                <height>48</height>
-                <aspectratio>stretch</aspectratio>
-                <texture colordiffuse="55000000" border="14">rounded_rect.png</texture>
-            </control>
-
-            <control type="image" id="3006">
-                <posx>0</posx>
-                <posy>56</posy>
-                <width>260</width>
-                <height>48</height>
-                <aspectratio>stretch</aspectratio>
-                <texture colordiffuse="B0000000" border="14">rounded_rect.png</texture>
-            </control>
-
             <control type="button" id="3002">
                 <posx>0</posx>
                 <posy>56</posy>
-                <width>260</width>
+                <width min="350" max="390">auto</width>
                 <height>48</height>
                 <align>center</align>
                 <aligny>center</aligny>

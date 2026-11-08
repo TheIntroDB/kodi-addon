@@ -158,3 +158,19 @@ msgstr "Zgłaszanie"
 msgctxt "#32046"
 msgid "Hide the Report button under the skip prompt"
 msgstr "Ukryj przycisk Zgłoś pod przyciskiem pomijania"
+
+msgctxt "#32047"
+msgid "Appearance"
+msgstr "Wygląd"
+
+msgctxt "#32048"
+msgid "Button style"
+msgstr "Styl przycisku"
+
+msgctxt "#32049"
+msgid "Classic"
+msgstr "Klasyczny"
+
+msgctxt "#32050"
+msgid "Glass"
+msgstr "Szkło"

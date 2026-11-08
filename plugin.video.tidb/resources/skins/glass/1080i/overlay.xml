@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Glass pills: translucent, fully rounded, with a hairline edge — the Stremio
+     Enhanced "glass" theme translated to Kodi.
+
+     Same buttons, geometry and auto widths as the classic style, so switching styles
+     moves nothing; only the textures and the text colour differ. The colours live in
+     the textures (tools/make_pill_textures.py) because colordiffuse can only darken a
+     texture — it cannot make the hairline edge lighter than the fill, nor the focused
+     pill brighter than the resting one.
+
+     The floor is the shared 350px rather than a tighter 341px: a stadium's ends are
+     semicircles, so the label needs the full radius clear on each side.
+
+     Kodi has no backdrop blur anywhere in its GUI, so "glass" here is translucency
+     and a 1px edge, not a frosted panel over the video.
+
+     border="23" on a 48px pill: the texture is a 48x48 stadium (radius 24), and Kodi
+     needs a strip left in the middle to stretch, so the border stops one pixel short
+     of half the height. -->
+<window type="dialog" id="14000">
+    <defaultcontrol always="true">3001</defaultcontrol>
+    <coordinates>
+        <system>1</system>
+        <posx>0</posx>
+        <posy>0</posy>
+    </coordinates>
+    <controls>
+        <control type="group">
+            <posx>1520</posx>
+            <posy>880</posy>
+            <width>390</width>
+            <height>104</height>
+
+            <animation effect="slide" start="40,0" end="0,0" time="260" tween="cubic" easing="out">WindowOpen</animation>
+            <animation effect="fade" start="0" end="100" time="260">WindowOpen</animation>
+            <animation effect="slide" start="0,0" end="40,0" time="200" tween="cubic" easing="in">WindowClose</animation>
+            <animation effect="fade" start="100" end="0" time="200">WindowClose</animation>
+
+            <!-- Skip pill (primary) -->
+            <control type="button" id="3001">
+                <posx>0</posx>
+                <posy>0</posy>
+                <width min="350" max="390">auto</width>
+                <height>48</height>
+                <align>center</align>
+                <aligny>center</aligny>
+                <font>font20</font>
+                <textcolor>FFFFFFFF</textcolor>
+                <focusedcolor>FF111111</focusedcolor>
+                <texturefocus border="23">pill_focus.png</texturefocus>
+                <texturenofocus border="23">pill.png</texturenofocus>
+                <label>Skip intro</label>
+            </control>
+
+            <!-- Report pill (secondary), directly under the skip pill. It carries no
+                 <visible> condition: Kodi's Control.setVisible can hide a control
+                 but never show one a condition hides, so overlay.py decides (and
+                 the mark-intro overlay, which shares this XML, hides it). -->
+            <control type="button" id="3002">
+                <posx>0</posx>
+                <posy>56</posy>
+                <width min="350" max="390">auto</width>
+                <height>48</height>
+                <align>center</align>
+                <aligny>center</aligny>
+                <font>font20</font>
+                <textcolor>FFFFFFFF</textcolor>
+                <focusedcolor>FF111111</focusedcolor>
+                <texturefocus border="23">pill_secondary_focus.png</texturefocus>
+                <texturenofocus border="23">pill_secondary.png</texturenofocus>
+                <label>Report</label>
+            </control>
+        </control>
+    </controls>
+</window>

@@ -74,6 +74,7 @@ TheIntroDB Kodi Addon includes a few settings to adjust behavior:
 - **Enable lookups**: Turns TheIntroDB requests on or off
 - **API key**: Lets you use your TheIntroDB API key.
 - **Report button**: Shows a **Report** button under the skip prompt whenever an API key is set, for telling TheIntroDB that a segment is wrong. The report is a vote on your account, so there is nothing to send without a key. Turn on **Hide the Report button** under Reporting if you would rather not see it.
+- **Button style**: **Classic** (the flat pill the add-on has always drawn) or **Glass** (translucent, fully rounded, with a hairline edge, from the Stremio Enhanced glass theme). Both are drawn by the button itself, so the box fits its label in every language instead of scrolling: Kodi sizes a button to its text, with a design floor of 350px (1080i) or 230px (720p) and a cap of 390px/245px. Fitting every shipped label is why the pills are wider than they used to be. Glass is as close to glass as Kodi gets — its GUI has no backdrop blur, so it is translucency and a 1px edge rather than a frosted panel.
 - **Debug options**: Enables verbose logging and on-screen notifications
 
 ---

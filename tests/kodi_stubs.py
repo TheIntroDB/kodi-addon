@@ -18,7 +18,10 @@ import time
 import types
 import xml.etree.ElementTree as ElementTree
 
-ADDON_PATH = '/tmp/tidb-addon'
+#: The add-on as it lies in the repository: the tests read its real XML, styles and
+#: textures, so a layout change is caught rather than stubbed away.
+ADDON_PATH = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'plugin.video.tidb')
 PROFILE_PATH = '/tmp/tidb-addon-profile'
 #: The user settings file the settings dialog writes, and the add-on reads.
 SETTINGS_FILE = os.path.join(PROFILE_PATH, 'settings.xml')
@@ -145,9 +148,8 @@ class Control(object):
 
     Kodi's `Control.setVisible` only moves the force-hidden flag (CGUIControl::SetVisible
     is called from Python with setVisState false), so it can hide a control but never
-    show one whose skin `<visible>` condition is false. Nothing here should be trusted
-    to make a condition-hidden control appear — the report pill is driven by a window
-    property for exactly that reason.
+    show one whose skin `<visible>` condition is false — which is why the pills carry no
+    condition in overlay.xml and Python owns the decision.
     """
 
     def __init__(self, control_id):
@@ -181,10 +183,12 @@ class ControlImage(Control):
 
 
 class WindowXMLDialog(object):
-    """The window the add-on's overlays subclass, with its controls recorded."""
+    """The window the add-on's overlays subclass, with its controls recorded.
 
-    BUTTON_IDS = (3001, 3002)
-    IMAGE_IDS = (3003, 3004, 3005, 3006)
+    Control classes come from the style's own overlay.xml — the same file Kodi reads —
+    so asking for control 3002 hands back a ControlButton only while the XML still
+    declares it as one.
+    """
 
     def __new__(cls, *args, **kwargs):
         return super(WindowXMLDialog, cls).__new__(cls)
@@ -194,6 +198,25 @@ class WindowXMLDialog(object):
         self._focus_id = None
         self._properties = {}
         self.window_closed = False
+        self.control_types = self._read_control_types(args)
+
+    @staticmethod
+    def _read_control_types(args):
+        """id -> control type, read from the style's XML the way Kodi would load it."""
+        xml_file, addon_path, skin, res = (list(args) + ['', '', '', ''])[:4]
+        if not xml_file or not addon_path:
+            return {}
+        path = os.path.join(addon_path, 'resources', 'skins', skin, res, xml_file)
+        try:
+            root = ElementTree.parse(path).getroot()
+        except Exception:
+            return {}
+        types = {}
+        for control in root.iter('control'):
+            control_id = control.get('id')
+            if control_id is not None:
+                types[int(control_id)] = control.get('type')
+        return types
 
     def setProperty(self, key, value):
         """Kodi's CGUIWindow::SetProperty; an empty value clears the property."""
@@ -207,9 +230,10 @@ class WindowXMLDialog(object):
 
     def getControl(self, control_id):
         if control_id not in self._controls:
-            if control_id in self.BUTTON_IDS:
+            kind = self.control_types.get(control_id)
+            if kind == 'button':
                 control_class = ControlButton
-            elif control_id in self.IMAGE_IDS:
+            elif kind == 'image':
                 control_class = ControlImage
             else:
                 control_class = Control
@@ -285,7 +309,9 @@ def _install():
 
     xbmcvfs = sys.modules.get('xbmcvfs') or types.ModuleType('xbmcvfs')
     xbmcvfs.translatePath = lambda path: path
-    xbmcvfs.exists = lambda path: False
+    # Real filesystem answers: the add-on's styles and textures are in the repository,
+    # and a test that lies about which folders exist would not catch a missing style.
+    xbmcvfs.exists = os.path.exists
     xbmcvfs.mkdirs = lambda path: None
     sys.modules['xbmcvfs'] = xbmcvfs
 

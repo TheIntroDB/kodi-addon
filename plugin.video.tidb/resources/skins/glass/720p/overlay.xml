@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Glass pills, 720p layout; defaultRes in overlay.py is 1080i — keep in sync.
+
+     Same as the 1080i glass file: <control type="button"> pills with auto widths
+     (floor 230px, cap 245px), colours baked into 38x38 stadium textures, border="18"
+     because 19 (half of 38) would leave nothing for Kodi to stretch. -->
+<window type="dialog" id="14000">
+    <defaultcontrol always="true">3001</defaultcontrol>
+    <coordinates>
+        <system>1</system>
+        <posx>0</posx>
+        <posy>0</posy>
+    </coordinates>
+    <controls>
+        <control type="group">
+            <posx>1030</posx>
+            <posy>580</posy>
+            <width>245</width>
+            <height>82</height>
+
+            <animation effect="slide" start="32,0" end="0,0" time="260" tween="cubic" easing="out">WindowOpen</animation>
+            <animation effect="fade" start="0" end="100" time="260">WindowOpen</animation>
+            <animation effect="slide" start="0,0" end="32,0" time="200" tween="cubic" easing="in">WindowClose</animation>
+            <animation effect="fade" start="100" end="0" time="200">WindowClose</animation>
+
+            <!-- Skip pill (primary) -->
+            <control type="button" id="3001">
+                <posx>0</posx>
+                <posy>0</posy>
+                <width min="230" max="245">auto</width>
+                <height>38</height>
+                <align>center</align>
+                <aligny>center</aligny>
+                <font>font12</font>
+                <textcolor>FFFFFFFF</textcolor>
+                <focusedcolor>FF111111</focusedcolor>
+                <texturefocus border="18">pill_focus.png</texturefocus>
+                <texturenofocus border="18">pill.png</texturenofocus>
+                <label>Skip intro</label>
+            </control>
+
+            <!-- Report pill (secondary), directly under the skip pill. It carries no
+                 <visible> condition: Kodi's Control.setVisible can hide a control
+                 but never show one a condition hides, so overlay.py decides (and
+                 the mark-intro overlay, which shares this XML, hides it). -->
+            <control type="button" id="3002">
+                <posx>0</posx>
+                <posy>44</posy>
+                <width min="230" max="245">auto</width>
+                <height>38</height>
+                <align>center</align>
+                <aligny>center</aligny>
+                <font>font12</font>
+                <textcolor>FFFFFFFF</textcolor>
+                <focusedcolor>FF111111</focusedcolor>
+                <texturefocus border="18">pill_secondary_focus.png</texturefocus>
+                <texturenofocus border="18">pill_secondary.png</texturenofocus>
+                <label>Report</label>
+            </control>
+        </control>
+    </controls>
+</window>

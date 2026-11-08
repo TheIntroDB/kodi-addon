@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- 720p layout; defaultRes in overlay.py is 1080i — keep in sync if you switch resolution. -->
+<!-- Classic pills, 720p layout; defaultRes in overlay.py is 1080i — keep in sync.
+
+     Same design as the 1080i file: one <control type="button"> per pill with an
+     auto width. The label floor here is 230px, measured against the widest shipped
+     translation in this font (Polish "Pomiń napisy końcowe", 193px) plus the corner
+     inset, and the cap is 245px. The group is placed so the 230px pill ends where the
+     old 200px pill ended, 20px from the screen edge. -->
 <window type="dialog" id="14000">
     <defaultcontrol always="true">3001</defaultcontrol>
     <coordinates>
@@ -9,9 +15,9 @@
     </coordinates>
     <controls>
         <control type="group">
-            <posx>1060</posx>
+            <posx>1030</posx>
             <posy>580</posy>
-            <width>200</width>
+            <width>245</width>
             <height>82</height>
 
             <animation effect="slide" start="32,0" end="0,0" time="260" tween="cubic" easing="out">WindowOpen</animation>
@@ -20,28 +26,10 @@
             <animation effect="fade" start="100" end="0" time="200">WindowClose</animation>
 
             <!-- Skip pill (primary) -->
-            <control type="image" id="3003">
-                <posx>1</posx>
-                <posy>2</posy>
-                <width>200</width>
-                <height>38</height>
-                <aspectratio>stretch</aspectratio>
-                <texture colordiffuse="55000000" border="12">rounded_rect.png</texture>
-            </control>
-
-            <control type="image" id="3004">
-                <posx>0</posx>
-                <posy>0</posy>
-                <width>200</width>
-                <height>38</height>
-                <aspectratio>stretch</aspectratio>
-                <texture colordiffuse="FFF8F8F8" border="12">rounded_rect.png</texture>
-            </control>
-
             <control type="button" id="3001">
                 <posx>0</posx>
                 <posy>0</posy>
-                <width>200</width>
+                <width min="230" max="245">auto</width>
                 <height>38</height>
                 <align>center</align>
                 <aligny>center</aligny>
@@ -57,28 +45,10 @@
                  <visible> condition: Kodi's Control.setVisible can hide a control
                  but never show one a condition hides, so overlay.py decides (and
                  the mark-intro overlay, which shares this XML, hides it). -->
-            <control type="image" id="3005">
-                <posx>1</posx>
-                <posy>46</posy>
-                <width>200</width>
-                <height>38</height>
-                <aspectratio>stretch</aspectratio>
-                <texture colordiffuse="55000000" border="12">rounded_rect.png</texture>
-            </control>
-
-            <control type="image" id="3006">
-                <posx>0</posx>
-                <posy>44</posy>
-                <width>200</width>
-                <height>38</height>
-                <aspectratio>stretch</aspectratio>
-                <texture colordiffuse="B0000000" border="12">rounded_rect.png</texture>
-            </control>
-
             <control type="button" id="3002">
                 <posx>0</posx>
                 <posy>44</posy>
-                <width>200</width>
+                <width min="230" max="245">auto</width>
                 <height>38</height>
                 <align>center</align>
                 <aligny>center</aligny>

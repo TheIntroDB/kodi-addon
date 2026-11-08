@@ -2,16 +2,15 @@
 # Copyright (C) 2026 TheIntroDB
 #
 # skip intro button windowxml — background thread closes when playhead passes intro end
-import os
 import threading
 import time
 import xbmc
 import xbmcgui
 import xbmcaddon
-import xbmcvfs
 from typing import Optional, Callable
 
 import addon_settings
+import button_styles
 
 ADDON = xbmcaddon.Addon()
 ADDON_PATH: str = ADDON.getAddonInfo('path')
@@ -27,11 +26,6 @@ def _detect_res() -> str:
 
 
 _OVERLAY_RES = _detect_res()
-_BG_IMAGE_SHADOW = 3003
-_BG_IMAGE_FILL = 3004
-# Report pill, drawn under the skip pill by the same XML
-_BG_FLAG_SHADOW = 3005
-_BG_FLAG_FILL = 3006
 
 # String IDs for localization
 STR_SKIP_INTRO = 32001
@@ -54,12 +48,6 @@ _POLL_INTERVAL = 0.5
 _START_POLL_INTERVAL = 0.25
 _CLOCK_ADVANCE_EPSILON = 0.05
 _DEFAULT_DISPLAY_SECONDS = 0  # 0 = keep until segment ends; users can override via General setting 'button_display_seconds'
-
-
-def _rounded_rect_texture_path() -> str:
-    joined = os.path.join(
-        ADDON_PATH, 'resources', 'skins', 'default', _OVERLAY_RES, 'rounded_rect.png')
-    return xbmcvfs.translatePath(joined)
 
 
 class SkipOverlay(xbmcgui.WindowXMLDialog):
@@ -115,14 +103,6 @@ class SkipOverlay(xbmcgui.WindowXMLDialog):
             self._dismiss_main_thread()
             return
         
-        # Reload pill textures by absolute path (relative paths sometimes fail for addon WindowXML on some platforms).
-        try:
-            tex = _rounded_rect_texture_path()
-            self.getControl(_BG_IMAGE_SHADOW).setImage(tex)
-            self.getControl(_BG_IMAGE_FILL).setImage(tex)
-        except Exception as e:
-            xbmc.log('[TheIntroDB] Overlay background textures: {}'.format(e), xbmc.LOGWARNING)
-        
         # Set dynamic button text based on segment type
         try:
             button_text = self._get_segment_button_text(self._segment_type)
@@ -139,19 +119,16 @@ class SkipOverlay(xbmcgui.WindowXMLDialog):
         # it), so these controls carry no condition in overlay.xml and Python owns
         # the decision. The mark-intro overlay shares that XML and hides them in its
         # own onInit.
+        # The pills are drawn by the buttons' own textures — one control per pill, and
+        # the texture is a relative path inside the style's own folder, which Kodi
+        # resolves against that folder. Nothing to load or size from here.
         show_report = self._flag_callback is not None
         try:
-            for control_id in (_BG_FLAG_SHADOW, _BG_FLAG_FILL, FLAG_BUTTON_ID):
-                self.getControl(control_id).setVisible(show_report)
+            self.getControl(FLAG_BUTTON_ID).setVisible(show_report)
         except Exception as e:
             xbmc.log('[TheIntroDB] Report pill visibility: {}'.format(e), xbmc.LOGWARNING)
 
         try:
-            flag_texture = _rounded_rect_texture_path()
-            for image_id in (_BG_FLAG_SHADOW, _BG_FLAG_FILL):
-                image = self.getControl(image_id)
-                if isinstance(image, xbmcgui.ControlImage):
-                    image.setImage(flag_texture)
             flag_button = self.getControl(FLAG_BUTTON_ID)
             if isinstance(flag_button, xbmcgui.ControlButton):
                 flag_button.setLabel(ADDON.getLocalizedString(STR_REPORT))
@@ -311,7 +288,7 @@ def show_skip_overlay(callback: Optional[Callable[[], None]] = None, intro_end: 
         wnd = SkipOverlay(
             'overlay.xml',
             ADDON_PATH,
-            'default',
+            button_styles.resolve(ADDON_PATH, _OVERLAY_RES),
             _OVERLAY_RES,
             callback=callback,
             intro_end=intro_end,

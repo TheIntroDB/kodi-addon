@@ -4,6 +4,9 @@
         <setting id="skip_offset" type="number" label="$ADDON[plugin.video.tidb 32011]" default="2"/>
         <setting id="button_display_seconds" type="number" label="$ADDON[plugin.video.tidb 32040]" default="0"/>
     </category>
+    <category label="$ADDON[plugin.video.tidb 32047]">
+        <setting id="button_style" type="labelenum" label="$ADDON[plugin.video.tidb 32048]" values="default|glass" lvalues="32049|32050" default="default"/>
+    </category>
     <category label="$ADDON[plugin.video.tidb 32026]">
         <setting id="enable_intro" type="bool" label="$ADDON[plugin.video.tidb 32006]" default="true"/>
         <setting id="auto_skip_intro" type="bool" label="$ADDON[plugin.video.tidb 32036]" default="false"/>

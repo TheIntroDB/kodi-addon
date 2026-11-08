@@ -5,12 +5,12 @@
 # Reuses the same overlay.xml skin pill as the skip button.
 import threading
 import time
-import os
 import xbmc
 import xbmcgui
 import xbmcaddon
-import xbmcvfs
 from typing import Optional
+
+import button_styles
 
 ADDON = xbmcaddon.Addon()
 ADDON_PATH: str = ADDON.getAddonInfo('path')
@@ -25,8 +25,6 @@ def _detect_res() -> str:
 
 
 _OVERLAY_RES = _detect_res()
-_BG_IMAGE_SHADOW = 3003
-_BG_IMAGE_FILL = 3004
 
 # String IDs
 STR_MARK_START = 32020
@@ -40,20 +38,12 @@ ACTION_SELECT = 7
 ACTION_PREVIOUS_MENU = 10
 ACTION_BACK = 92
 BUTTON_ID = 3001
-# The report pill's controls, which belong to the skip prompt: this overlay shares
-# overlay.xml with it, so they are hidden here rather than drawn.
+# The report pill's button, which belongs to the skip prompt: this overlay shares
+# overlay.xml with it, so it is hidden here rather than drawn.
 FLAG_BUTTON_ID = 3002
-_BG_FLAG_SHADOW = 3005
-_BG_FLAG_FILL = 3006
 
 _DISPLAY_DURATION = 8.0  # longer than skip since user is paused/deciding
 _POLL_INTERVAL = 0.5
-
-
-def _rounded_rect_texture_path() -> str:
-    joined = os.path.join(
-        ADDON_PATH, 'resources', 'skins', 'default', _OVERLAY_RES, 'rounded_rect.png')
-    return xbmcvfs.translatePath(joined)
 
 
 class SubmitMarkOverlay(xbmcgui.WindowXMLDialog):
@@ -88,29 +78,10 @@ class SubmitMarkOverlay(xbmcgui.WindowXMLDialog):
             return
 
         # The report pill belongs to the skip prompt, which shares this XML.
-        for control_id in (_BG_FLAG_SHADOW, _BG_FLAG_FILL, FLAG_BUTTON_ID):
-            try:
-                self.getControl(control_id).setVisible(False)
-            except Exception:
-                pass
-
-        # Reload pill textures
         try:
-            tex = _rounded_rect_texture_path()
-            for img_id in (_BG_IMAGE_SHADOW, _BG_IMAGE_FILL):
-                ctl = self.getControl(img_id)
-                if isinstance(ctl, xbmcgui.ControlImage):
-                    # setFileName is more reliable across Kodi versions than setImage
-                    try:
-                        ctl.setFileName(tex)
-                    except AttributeError:
-                        # Fallback for older versions or specific stubs
-                        try:
-                            ctl.setImage(tex)
-                        except Exception:
-                            pass
-        except Exception as e:
-            xbmc.log('[TheIntroDB] Submit overlay textures: {}'.format(e), xbmc.LOGWARNING)
+            self.getControl(FLAG_BUTTON_ID).setVisible(False)
+        except Exception:
+            pass
 
         # Set button label
         try:
@@ -216,7 +187,7 @@ def show_submit_mark_overlay(label_text: str, player: Optional[xbmc.Player] = No
         wnd = SubmitMarkOverlay(
             'overlay.xml',
             ADDON_PATH,
-            'default',
+            button_styles.resolve(ADDON_PATH, _OVERLAY_RES),
             _OVERLAY_RES,
             label_text=label_text,
             player=player,

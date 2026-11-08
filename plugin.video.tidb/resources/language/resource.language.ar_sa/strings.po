@@ -159,3 +159,19 @@ msgstr "الإبلاغ"
 msgctxt "#32046"
 msgid "Hide the Report button under the skip prompt"
 msgstr "إخفاء زر إبلاغ أسفل زر التخطي"
+
+msgctxt "#32047"
+msgid "Appearance"
+msgstr "المظهر"
+
+msgctxt "#32048"
+msgid "Button style"
+msgstr "نمط الزر"
+
+msgctxt "#32049"
+msgid "Classic"
+msgstr "كلاسيكي"
+
+msgctxt "#32050"
+msgid "Glass"
+msgstr "زجاجي"

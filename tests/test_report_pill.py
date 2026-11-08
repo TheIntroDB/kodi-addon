@@ -5,9 +5,10 @@
 
 Kodi cannot run here, so what is pinned instead is the contract between the XML
 both resolutions ship and the Python that drives it: the pill sits under the skip
-pill and is drawn only while the window property overlay.py sets is non-empty, so
-the mark-intro overlay that shares the file never draws it. The press handling is
-covered too, where reporting must not skip and one segment must be reported once.
+pill, both are drawn by their own button textures, and Python decides whether the
+report pill is drawn at all — so the mark-intro overlay that shares the file never
+shows it. The press handling is covered too, where reporting must not skip and one
+segment must be reported once.
 """
 import os
 import sys
@@ -29,12 +30,12 @@ REPO_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RESOLUTIONS = ('1080i', '720p')
 SKIP_BUTTON = 3001
 REPORT_BUTTON = 3002
-SKIP_IMAGES = (3003, 3004)
+BUTTON_STYLE = 'default'
 
 
 def _window(flag_callback=None, callback=None, monitor=None):
     return overlay.SkipOverlay(
-        'overlay.xml', kodi_stubs.ADDON_PATH, 'default', '1080i',
+        'overlay.xml', kodi_stubs.ADDON_PATH, BUTTON_STYLE, '1080i',
         callback=callback, intro_end=None, player=None, monitor=monitor,
         segment_type='intro', segment_index=0, flag_callback=flag_callback)
 
@@ -48,9 +49,9 @@ def _wait_for(predicate, timeout=2.0):
     return predicate()
 
 
-def _overlay_controls(resolution):
+def _overlay_controls(resolution, style=BUTTON_STYLE):
     path = os.path.join(
-        REPO_DIR, 'plugin.video.tidb', 'resources', 'skins', 'default', resolution, 'overlay.xml')
+        REPO_DIR, 'plugin.video.tidb', 'resources', 'skins', style, resolution, 'overlay.xml')
     root = ElementTree.parse(path).getroot()
     group = root.find('controls/control')
     controls = {}
@@ -58,11 +59,14 @@ def _overlay_controls(resolution):
         control_id = control.get('id')
         if control_id is None:
             continue
+        width = control.find('width')
         controls[int(control_id)] = {
             'type': control.get('type'),
             'posx': int(control.findtext('posx')),
             'posy': int(control.findtext('posy')),
-            'width': int(control.findtext('width')),
+            # ('auto', min, max) for the auto-width pills, ('fixed', px, 0) otherwise.
+            'width': ((width.text or '').strip(),
+                      int(width.get('min') or 0), int(width.get('max') or 0)),
             'height': int(control.findtext('height')),
             'visible': (control.findtext('visible') or '').strip(),
         }
@@ -103,12 +107,8 @@ class OverlayLayoutTests(unittest.TestCase):
         # condition here would make the pill impossible to show.
         for resolution in RESOLUTIONS:
             _root, _group, controls = _overlay_controls(resolution)
-            self.assertEqual('', controls[REPORT_BUTTON]['visible'], resolution)
-            for image_id in (overlay._BG_FLAG_SHADOW, overlay._BG_FLAG_FILL):
-                self.assertEqual('', controls[image_id]['visible'], resolution)
-            self.assertEqual('', controls[SKIP_BUTTON]['visible'], resolution)
-            for image_id in SKIP_IMAGES:
-                self.assertEqual('', controls[image_id]['visible'], resolution)
+            for control_id in (REPORT_BUTTON, SKIP_BUTTON):
+                self.assertEqual('', controls[control_id]['visible'], resolution)
 
 
 class ReportPressTests(unittest.TestCase):
@@ -116,31 +116,25 @@ class ReportPressTests(unittest.TestCase):
         offered = _window(flag_callback=lambda: True)
         offered.onInit()
         self.assertEqual('string-32043', offered.getControl(overlay.FLAG_BUTTON_ID).label)
-        for control_id in (overlay.FLAG_BUTTON_ID, overlay._BG_FLAG_SHADOW, overlay._BG_FLAG_FILL):
-            self.assertEqual([True], offered.getControl(control_id).set_visible_calls)
-        for image_id in (overlay._BG_FLAG_SHADOW, overlay._BG_FLAG_FILL):
-            self.assertIsNotNone(offered.getControl(image_id).image)
+        self.assertEqual([True], offered.getControl(overlay.FLAG_BUTTON_ID).set_visible_calls)
 
         plain = _window()
         plain.onInit()
-        for control_id in (overlay.FLAG_BUTTON_ID, overlay._BG_FLAG_SHADOW, overlay._BG_FLAG_FILL):
-            self.assertEqual([False], plain.getControl(control_id).set_visible_calls)
+        self.assertEqual([False], plain.getControl(overlay.FLAG_BUTTON_ID).set_visible_calls)
 
     def test_the_mark_overlay_hides_the_report_pill(self):
-        # The mark-intro pill reuses overlay.xml, so it must hide the report
-        # controls the skip prompt would otherwise decide about.
+        # The mark-intro pill reuses overlay.xml, so it must hide the report button
+        # the skip prompt would otherwise decide about.
         class _AbortingMonitor(kodi_stubs.Monitor):
             def waitForAbort(self, timeout=None):
                 return True
 
         wnd = submit_overlay.SubmitMarkOverlay(
-            'overlay.xml', kodi_stubs.ADDON_PATH, 'default', '1080i',
+            'overlay.xml', kodi_stubs.ADDON_PATH, BUTTON_STYLE, '1080i',
             label_text='Mark Intro Start', player=None, monitor=_AbortingMonitor())
         wnd.onInit()
 
-        for control_id in (submit_overlay.FLAG_BUTTON_ID, submit_overlay._BG_FLAG_SHADOW,
-                           submit_overlay._BG_FLAG_FILL):
-            self.assertEqual([False], wnd.getControl(control_id).set_visible_calls)
+        self.assertEqual([False], wnd.getControl(submit_overlay.FLAG_BUTTON_ID).set_visible_calls)
 
     def test_pressing_report_reports_and_leaves_the_pill_open(self):
         calls = []
