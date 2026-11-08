@@ -29,14 +29,17 @@ SETTING_ID = 'button_style'
 
 
 def _styles_root(addon_path: str) -> str:
+    """The folder every style lives under."""
     return os.path.join(addon_path, 'resources', 'skins')
 
 
 def _style_path(addon_path: str, style: str, res: str) -> str:
+    """One style's folder for one resolution, which is what Kodi needs to exist."""
     return os.path.join(_styles_root(addon_path), style, res)
 
 
 def _exists(path: str) -> bool:
+    """Whether Kodi would find that path, asked the way the add-on asks."""
     try:
         if xbmcvfs.exists(path):
             return True

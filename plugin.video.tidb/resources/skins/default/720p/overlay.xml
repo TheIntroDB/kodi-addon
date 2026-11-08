@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Classic pills, 720p layout; defaultRes in overlay.py is 1080i — keep in sync.
+<!-- Classic pills, 720p layout.
+
+     overlay.py works the resolution out from the screen height (`_detect_res()`) and
+     passes it to the window, so this file is the one Kodi loads on a 720-line screen.
 
      Same design as the 1080i file: one <control type="button"> per pill with an
      auto width. The label floor here is 230px, measured against the widest shipped

@@ -73,6 +73,7 @@ LABELS = (('32001', 'skip intro'), ('32003', 'skip recap'), ('32004', 'skip cred
 
 
 def labels_for(folder):
+    """The six labels a pill can show, for one language folder."""
     path = os.path.join(LANG_DIR, folder, 'strings.po')
     text = open(path, encoding='utf-8').read()
     found = {}
@@ -83,6 +84,12 @@ def labels_for(folder):
 
 
 def pill(draw, image, font, style, label, top, focused):
+    """Draw one pill the way Kodi would: width = CLAMP(label, min, max), then the label.
+
+    `focused` picks the state, because the skip pill holds focus when the prompt opens
+    while the report pill does not — which is also why the two use different text
+    colours in the glass style.
+    """
     cfg = STYLES[style]
     width = min(max(int(font.getlength(label)), MIN_W), MAX_W)
     left = GROUP_RIGHT - width
@@ -98,6 +105,7 @@ def pill(draw, image, font, style, label, top, focused):
 
 
 def main():
+    """Write one sheet per style, and report the growth-row label it settled on."""
     font = ImageFont.truetype(FONT, FONT_SIZE)
     small = ImageFont.truetype(FONT, 20)
     title = ImageFont.truetype(FONT, 34)

@@ -53,11 +53,18 @@ FONT_CANDIDATES = (
     '/System/Library/Fonts/Helvetica.ttc',
 )
 
+#: The design floor each resolution documents in overlay.xml: the widest shipped label
+#: measured with room inside the corners (295px at 1080i, 193px at 720p). Pinned here as
+#: well as measured below, because the measurement needs PIL (so CI skips it) and a
+#: coordinated change to the floor *and* the group position would otherwise stay green.
+DOCUMENTED_FLOOR = {'1080i': 350, '720p': 230}
+
 SKIP_BUTTON = 3001
 REPORT_BUTTON = 3002
 
 
 def _style_xml(style, res):
+    """Path to one style's overlay.xml for one resolution."""
     return os.path.join(SKINS_DIR, style, res, 'overlay.xml')
 
 
@@ -243,8 +250,7 @@ class PillGeometryTests(unittest.TestCase):
         for style in button_styles.STYLES:
             for res in RESOLUTIONS:
                 pill = _control(style, res, SKIP_BUTTON)
-                self.assertGreaterEqual(pill['min'], 260 if res == '1080i' else 200,
-                                        (style, res))
+                self.assertGreaterEqual(pill['min'], DOCUMENTED_FLOOR[res], (style, res))
                 measured = _measured_widest_label(res)
                 if measured is None:
                     continue

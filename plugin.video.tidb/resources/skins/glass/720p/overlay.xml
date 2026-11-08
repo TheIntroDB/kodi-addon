@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Glass pills, 720p layout; defaultRes in overlay.py is 1080i — keep in sync.
+<!-- Glass pills, 720p layout.
+
+     overlay.py works the resolution out from the screen height (`_detect_res()`) and
+     passes it to the window, so this file is the one Kodi loads on a 720-line screen.
 
      Same as the 1080i glass file: <control type="button"> pills with auto widths
      (floor 230px, cap 245px), colours baked into 38x38 stadium textures, border="18"

@@ -27,7 +27,7 @@ Geometry the XML depends on:
   can only darken a texture — it cannot make the hairline border lighter than the fill,
   and it cannot make the focused state brighter.
 
-Measured before choosing the min widths in overlay.xml (tests/test_overlay_styles.py
+Measured before choosing the min widths in overlay.xml (tests/test_button_styles.py
 re-asserts the floor): the widest label the pills can show across the six shipped
 languages is Polish "Pomiń napisy końcowe" at 295px in the 1080i font and 193px in the
 720p font, against a 260px/200px box in the old fixed-width design.
@@ -83,6 +83,7 @@ def stadium(side: int, fill, edge, edge_width: int = 1) -> Image.Image:
 
 
 def write_style(style: str, resources_root: str) -> int:
+    """Write every texture for one style, one set per resolution."""
     written = 0
     for res, geometry in STYLES[style].items():
         folder = os.path.join(resources_root, 'skins', style, res)
@@ -96,6 +97,7 @@ def write_style(style: str, resources_root: str) -> int:
 
 
 def main() -> int:
+    """Write every style's textures, resolving the add-on's resources folder."""
     resources_root = os.path.join(
         os.path.dirname(os.path.abspath(__file__)), '..', 'plugin.video.tidb', 'resources')
     resources_root = os.path.normpath(resources_root)
