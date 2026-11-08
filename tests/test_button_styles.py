@@ -40,6 +40,7 @@ LANGUAGE_DIR = os.path.join(ADDON_DIR, 'resources', 'language')
 RESOLUTIONS = ('1080i', '720p')
 #: Kodi's GUI design resolutions, which the window coordinates live in.
 SCREEN_WIDTH = {'1080i': 1920, '720p': 1280}
+SCREEN_HEIGHT = {'1080i': 1080, '720p': 720}
 #: Where the old fixed-width pills ended, measured from the screen's right edge: the
 #: design keeps the pills where they were and widens them, rather than moving them.
 OLD_PILL_RIGHT_EDGE = {'1080i': 1870, '720p': 1260}
@@ -289,6 +290,17 @@ class PillGeometryTests(unittest.TestCase):
                 pill = _control(style, res, SKIP_BUTTON)
                 self.assertEqual(OLD_PILL_RIGHT_EDGE[res],
                                  pill['group_posx'] + pill['min'], (style, res))
+
+    def test_the_pills_stay_on_screen_vertically(self):
+        # The group carries both pills, so this is the invariant a nudge up or down has
+        # to keep: the stack inside the screen, in its bottom half, with a margin below.
+        for style in button_styles.STYLES:
+            for res in RESOLUTIONS:
+                group = ElementTree.parse(_style_xml(style, res)).getroot().find('controls/control')
+                posy = int(group.findtext('posy'))
+                height = int(group.findtext('height'))
+                self.assertLessEqual(posy + height, SCREEN_HEIGHT[res] - 10, (style, res))
+                self.assertGreater(posy, SCREEN_HEIGHT[res] // 2, (style, res))
 
     def test_both_pills_share_a_left_edge_and_a_width(self):
         for style in button_styles.STYLES:
