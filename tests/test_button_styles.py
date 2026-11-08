@@ -59,6 +59,11 @@ FONT_CANDIDATES = (
 #: coordinated change to the floor *and* the group position would otherwise stay green.
 DOCUMENTED_FLOOR = {'1080i': 350, '720p': 230}
 
+#: Kodi resolves a texture path only when it is "full" (a leading "/" or anything with
+#: "://"); everything else is searched under the *active skin's* media folder. The
+#: add-on's own textures are therefore addressed through this prefix.
+ADDON_SPECIAL_PREFIX = 'special://home/addons/plugin.video.tidb/'
+
 SKIP_BUTTON = 3001
 REPORT_BUTTON = 3002
 
@@ -95,6 +100,13 @@ def _control(style, res, control_id):
         'group_width': int(group.findtext('width')),
         'group_height': int(group.findtext('height')),
     }
+
+
+def _texture_file(texture):
+    """The repository file a texture path in the XML names."""
+    if texture.startswith(ADDON_SPECIAL_PREFIX):
+        return os.path.join(ADDON_DIR, texture[len(ADDON_SPECIAL_PREFIX):])
+    return os.path.join(SKINS_DIR, texture)
 
 
 def _shipped_labels():
@@ -313,15 +325,26 @@ class PillGeometryTests(unittest.TestCase):
 class PillTextureTests(unittest.TestCase):
     """The textures the XML names are the ones the style ships."""
 
-    def test_the_textures_exist_in_the_style_folder(self):
+    def test_the_textures_are_full_paths_kodi_will_resolve(self):
+        # A relative texture name is looked up under the *active skin's* media folder,
+        # never the add-on's own skin folder, so a bare "pill.png" finds nothing: the
+        # pill draws invisible with only its label showing. Full paths (CURL::IsFullPath:
+        # a leading "/" or anything containing "://") are used as given. This shipped
+        # broken once — both styles drew a label with no pill — so it is pinned here.
         for style in button_styles.STYLES:
             for res in RESOLUTIONS:
                 for control_id in (SKIP_BUTTON, REPORT_BUTTON):
                     pill = _control(style, res, control_id)
                     for texture in pill['textures']:
-                        self.assertTrue(texture, (style, res, control_id))
-                        path = os.path.join(SKINS_DIR, style, res, texture)
-                        self.assertTrue(os.path.isfile(path), path)
+                        where = (style, res, control_id)
+                        self.assertTrue(texture, where)
+                        self.assertTrue(texture.startswith(ADDON_SPECIAL_PREFIX),
+                                        '{}: {!r} is not a full path Kodi resolves'.format(where, texture))
+                        relative = texture[len(ADDON_SPECIAL_PREFIX):]
+                        self.assertTrue(os.path.isfile(_texture_file(texture)), texture)
+                        # and it names this style's own folder, not another style's
+                        self.assertEqual(os.path.join('resources', 'skins', style, res),
+                                         os.path.dirname(relative), texture)
 
     def test_a_texture_is_a_square_that_its_corners_fit_in(self):
         # A 9-slice draws its corners at their native size and stretches the middle, so
@@ -337,7 +360,7 @@ class PillTextureTests(unittest.TestCase):
                 for control_id in (SKIP_BUTTON, REPORT_BUTTON):
                     pill = _control(style, res, control_id)
                     for texture in pill['textures']:
-                        image = Image.open(os.path.join(SKINS_DIR, style, res, texture)).convert('RGBA')
+                        image = Image.open(_texture_file(texture)).convert('RGBA')
                         width, height = image.size
                         self.assertEqual(width, height, texture)
                         self.assertGreaterEqual(width, 2 * pill['border'], texture)

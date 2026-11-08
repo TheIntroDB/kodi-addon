@@ -1,4 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Texture paths are full `special://home/addons/...` paths on purpose.
+
+     Kodi resolves a texture name through CGUITextureManager::GetTexturePath, which uses
+     the name as-is only when CURL::IsFullPath says so (it starts with "/" or contains
+     "://"). Everything else is looked for under the *active skin's* media folder, never
+     the add-on's own skin folder, so a relative "pill.png" resolves to nothing: the pill
+     draws invisible and only its label shows. The image-based pills this replaced got
+     away with relative names because Python set their paths absolutely
+     (ControlImage.setImage); a button has no texture setter — CGUIButtonControl exposes
+     SetLabel and SetLabel2 only — so the path has to be written here.
+-->
 <!-- Glass pills: translucent, fully rounded, with a hairline edge — the Stremio
      Enhanced "glass" theme translated to Kodi.
 
@@ -47,8 +58,8 @@
                 <font>font20</font>
                 <textcolor>FFFFFFFF</textcolor>
                 <focusedcolor>FF111111</focusedcolor>
-                <texturefocus border="23">pill_focus.png</texturefocus>
-                <texturenofocus border="23">pill.png</texturenofocus>
+                <texturefocus border="23">special://home/addons/plugin.video.tidb/resources/skins/glass/1080i/pill_focus.png</texturefocus>
+                <texturenofocus border="23">special://home/addons/plugin.video.tidb/resources/skins/glass/1080i/pill.png</texturenofocus>
                 <label>Skip intro</label>
             </control>
 
@@ -66,8 +77,8 @@
                 <font>font20</font>
                 <textcolor>FFFFFFFF</textcolor>
                 <focusedcolor>FF111111</focusedcolor>
-                <texturefocus border="23">pill_secondary_focus.png</texturefocus>
-                <texturenofocus border="23">pill_secondary.png</texturenofocus>
+                <texturefocus border="23">special://home/addons/plugin.video.tidb/resources/skins/glass/1080i/pill_secondary_focus.png</texturefocus>
+                <texturenofocus border="23">special://home/addons/plugin.video.tidb/resources/skins/glass/1080i/pill_secondary.png</texturenofocus>
                 <label>Report</label>
             </control>
         </control>

@@ -1,4 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Texture paths are full `special://home/addons/...` paths on purpose.
+
+     Kodi resolves a texture name through CGUITextureManager::GetTexturePath, which uses
+     the name as-is only when CURL::IsFullPath says so (it starts with "/" or contains
+     "://"). Everything else is looked for under the *active skin's* media folder, never
+     the add-on's own skin folder, so a relative "pill.png" resolves to nothing: the pill
+     draws invisible and only its label shows. The image-based pills this replaced got
+     away with relative names because Python set their paths absolutely
+     (ControlImage.setImage); a button has no texture setter — CGUIButtonControl exposes
+     SetLabel and SetLabel2 only — so the path has to be written here.
+-->
 <!-- Classic pills, 720p layout.
 
      overlay.py works the resolution out from the screen height (`_detect_res()`) and
@@ -39,8 +50,8 @@
                 <font>font12</font>
                 <textcolor>FF111111</textcolor>
                 <focusedcolor>FF000000</focusedcolor>
-                <texturefocus colordiffuse="FFFFFFFF" border="12">rounded_rect.png</texturefocus>
-                <texturenofocus colordiffuse="FFF8F8F8" border="12">rounded_rect.png</texturenofocus>
+                <texturefocus colordiffuse="FFFFFFFF" border="12">special://home/addons/plugin.video.tidb/resources/skins/default/720p/rounded_rect.png</texturefocus>
+                <texturenofocus colordiffuse="FFF8F8F8" border="12">special://home/addons/plugin.video.tidb/resources/skins/default/720p/rounded_rect.png</texturenofocus>
                 <label>Skip intro</label>
             </control>
 
@@ -58,8 +69,8 @@
                 <font>font12</font>
                 <textcolor>FFF0F0F0</textcolor>
                 <focusedcolor>FFFFFFFF</focusedcolor>
-                <texturefocus colordiffuse="FF3A3A3A" border="12">rounded_rect.png</texturefocus>
-                <texturenofocus colordiffuse="B0000000" border="12">rounded_rect.png</texturenofocus>
+                <texturefocus colordiffuse="FF3A3A3A" border="12">special://home/addons/plugin.video.tidb/resources/skins/default/720p/rounded_rect.png</texturefocus>
+                <texturenofocus colordiffuse="B0000000" border="12">special://home/addons/plugin.video.tidb/resources/skins/default/720p/rounded_rect.png</texturenofocus>
                 <label>Report</label>
             </control>
         </control>
