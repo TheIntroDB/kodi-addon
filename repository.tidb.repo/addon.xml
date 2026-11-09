@@ -14,6 +14,7 @@
         <summary lang="en_GB">Source for TheIntroDB Kodi Addon (GitHub)</summary>
         <description lang="en_GB">Adds the TheIntroDB service addon from github.com/TheIntroDB</description>
         <platform>all</platform>
+        <license>GPL-3.0-or-later</license>
         <assets>
             <icon>resources/icon.png</icon>
         </assets>

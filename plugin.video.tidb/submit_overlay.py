@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: GPL-2.0-or-later
+# SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (C) 2026 TheIntroDB
 #
 # submit_overlay.py — overlay for marking intro start/end timestamps during playback

@@ -18,7 +18,7 @@
         <description lang="ar_SA">يجلب أزمنة المقاطع من TheIntroDB أثناء المشاهدة. يستخدم معرّفات TVDB أولاً، ثم TMDB، ثم معرّفات IMDb (tt…) مع الموسم والحلقة.</description>
         <description lang="fr_FR">Récupère les horodatages des segments depuis TheIntroDB pendant la lecture. Utilise en priorité les identifiants TVDB, puis les identifiants TMDB, puis les identifiants IMDb (tt…) avec la saison et l'épisode.</description>
         <platform>all</platform>
-        <license>GPL-2.0-or-later</license>
+        <license>GPL-3.0-or-later</license>
         <assets>
             <icon>resources/icon.png</icon>
         </assets>
