@@ -34,7 +34,7 @@ Kodi service add-on that gets intro, recap, credits, and preview segments from *
 
 ### Option B: Add-on zip only
 
-1. Download the latest add-on zip [plugin.video.tidb-2.2.0.zip](https://theintrodb.github.io/kodi-addon/plugin.video.tidb-2.2.0.zip):
+1. Download the latest add-on zip [plugin.video.tidb-2.2.1.zip](https://theintrodb.github.io/kodi-addon/plugin.video.tidb-2.2.1.zip):
 2. In Kodi, choose **Settings → Add-ons → Install from zip file**.
 3. Select the zip to install the add-on directly.
 
