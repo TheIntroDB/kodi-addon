@@ -174,3 +174,7 @@ msgstr "经典"
 msgctxt "#32050"
 msgid "Glass"
 msgstr "玻璃"
+
+msgctxt "#32051"
+msgid "Retry for late metadata (up to 30 seconds)"
+msgstr "元数据延迟时重试（最长 30 秒）"

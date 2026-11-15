@@ -22,6 +22,7 @@
         <setting id="introdb_api_key" type="text" label="$ADDON[plugin.video.tidb 32032]" default=""/>
         <setting id="test_api_key_now" type="bool" label="$ADDON[plugin.video.tidb 32041]" default="false"/>
         <setting id="test_api_key_note" type="text" label="$ADDON[plugin.video.tidb 32042]" enable="false"/>
+        <setting id="retry_late_ids" type="bool" label="$ADDON[plugin.video.tidb 32051]" default="false"/>
     </category>
     <category label="$ADDON[plugin.video.tidb 32028]">
         <setting id="enable_submissions" type="bool" label="$ADDON[plugin.video.tidb 32024]" default="false"/>
