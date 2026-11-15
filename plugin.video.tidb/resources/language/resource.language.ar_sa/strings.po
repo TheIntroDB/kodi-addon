@@ -175,3 +175,7 @@ msgstr "كلاسيكي"
 msgctxt "#32050"
 msgid "Glass"
 msgstr "زجاجي"
+
+msgctxt "#32051"
+msgid "Retry for late metadata (up to 30 seconds)"
+msgstr "إعادة المحاولة عند تأخر البيانات الوصفية (حتى 30 ثانية)"

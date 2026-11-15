@@ -2,6 +2,7 @@
 # Copyright (C) 2026 TheIntroDB
 #
 # kodi service entry: poll playback, query theintrodb, show skip ui or auto-seek
+import time
 import xbmc
 import xbmcaddon
 import xbmcgui
@@ -73,6 +74,7 @@ class PlaybackSession:
     """Holds all mutable state for one file's playback."""
     current_file: Optional[str]
     media_ids: Optional[Dict[str, Any]]
+    ids_first_try: Optional[float]
     all_segments: Optional[Dict[str, Any]]
     processed_segments: Dict[str, Dict[str, Any]]
     next_episode_info: Optional[Dict[str, Any]]
@@ -89,6 +91,7 @@ class PlaybackSession:
     def reset(self) -> None:
         self.current_file = None
         self.media_ids = None
+        self.ids_first_try = None
         self.all_segments = None
         self.processed_segments = {}
         self.next_episode_info = None
@@ -516,7 +519,15 @@ def _run_service() -> None:
         _debug_osd('Monitoring: {}'.format(filename[-40:]))
 
         # ── Fetch media IDs (cached) ──
-        if session.media_ids is None:
+        # Some add-ons add metadata ids a few seconds after playback starts: while none
+        # exist yet, keep re-reading them for up to 30 seconds (if enabled).
+        now = time.monotonic()
+        if session.ids_first_try is None:
+            session.ids_first_try = now
+        ids = session.media_ids
+        if ids is None or (not (ids.get('tvdb_id') or ids.get('tmdb_id') or ids.get('imdb_id'))
+                           and now - session.ids_first_try < 30
+                           and addon_settings.setting_bool('retry_late_ids')):
             session.media_ids = player.get_media_ids()
             xbmc.log('[TheIntroDB] Media IDs: tvdb={} tvdb_ep={} tmdb={} imdb={} S{}E{} movie={}'.format(
                 session.media_ids.get('tvdb_id'), session.media_ids.get('tvdb_episode_id'),
