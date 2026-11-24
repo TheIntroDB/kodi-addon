@@ -1,0 +1,180 @@
+# Smart Intro Skip language file
+msgid ""
+msgstr ""
+"Project-Id-Version: plugin.video.tidb\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: 2024-01-01 00:00+0000\n"
+"Last-Translator: Vuzzy\n"
+"Language-Team: Romanian\n"
+"Language: ro_RO\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgctxt "#32001"
+msgid "Skip Intro"
+msgstr "Omite intro-ul"
+
+msgctxt "#32003"
+msgid "Skip Recap"
+msgstr "Omite rezumatul"
+
+msgctxt "#32004"
+msgid "Skip Credits"
+msgstr "Omite genericul"
+
+msgctxt "#32005"
+msgid "Skip Preview"
+msgstr "Omite previzualizarea"
+
+msgctxt "#32006"
+msgid "Enable intro skipping"
+msgstr "Activează omiterea intro-ului"
+
+msgctxt "#32007"
+msgid "Enable recap skipping"
+msgstr "Activează omiterea rezumatului"
+
+msgctxt "#32008"
+msgid "Enable credits skipping"
+msgstr "Activează omiterea genericului"
+
+msgctxt "#32009"
+msgid "Enable preview skipping"
+msgstr "Activează omiterea previzualizării"
+
+msgctxt "#32011"
+msgid "Extra seconds to skip past segment end"
+msgstr "Secunde suplimentare de omis după sfârșitul segmentului"
+
+msgctxt "#32012"
+msgid "Next Episode"
+msgstr "Episodul următor"
+
+msgctxt "#32020"
+msgid "Mark Intro Start"
+msgstr "Marchează începutul intro-ului"
+
+msgctxt "#32021"
+msgid "Mark Intro End"
+msgstr "Marchează sfârșitul intro-ului"
+
+msgctxt "#32022"
+msgid "Submitted!"
+msgstr "Trimis!"
+
+msgctxt "#32023"
+msgid "Submission failed"
+msgstr "Trimiterea a eșuat"
+
+msgctxt "#32024"
+msgid "Offer to submit intros on pause (needs API key)"
+msgstr "Oferă trimiterea intro-urilor la pauză (necesită cheie API)"
+
+msgctxt "#32025"
+msgid "General"
+msgstr "General"
+
+msgctxt "#32026"
+msgid "Segment Types"
+msgstr "Tipuri de segmente"
+
+msgctxt "#32027"
+msgid "TheIntroDB"
+msgstr "TheIntroDB"
+
+msgctxt "#32028"
+msgid "Submissions"
+msgstr "Trimiteri"
+
+msgctxt "#32029"
+msgid "Privacy"
+msgstr "Confidențialitate"
+
+msgctxt "#32030"
+msgid "Debug"
+msgstr "Depanare"
+
+msgctxt "#32031"
+msgid "Enable lookups"
+msgstr "Activează căutările"
+
+msgctxt "#32032"
+msgid "Optional TheIntroDB API key"
+msgstr "Cheie API TheIntroDB (opțional)"
+
+msgctxt "#32033"
+msgid "Anonymous usage reporting"
+msgstr "Raportare anonimă a utilizării"
+
+msgctxt "#32034"
+msgid "Verbose logging (kodi.log)"
+msgstr "Jurnal detaliat (kodi.log)"
+
+msgctxt "#32035"
+msgid "On-screen debug notifications"
+msgstr "Notificări de depanare pe ecran"
+
+msgctxt "#32036"
+msgid "Auto-skip intro segments"
+msgstr "Omite automat segmentele de intro"
+
+msgctxt "#32037"
+msgid "Auto-skip recap segments"
+msgstr "Omite automat segmentele de rezumat"
+
+msgctxt "#32038"
+msgid "Auto-skip credits segments"
+msgstr "Omite automat segmentele de generic"
+
+msgctxt "#32039"
+msgid "Auto-skip preview segments"
+msgstr "Omite automat segmentele de previzualizare"
+
+msgctxt "#32040"
+msgid "Hide skip button after (seconds, 0 = keep until segment ends)"
+msgstr "Ascunde butonul de omitere după (secunde, 0 = până la sfârșitul segmentului)"
+
+msgctxt "#32041"
+msgid "Test API key"
+msgstr "Testează cheia API"
+
+msgctxt "#32042"
+msgid "Enable, then press OK to close settings and see the result"
+msgstr "Activează, apoi apasă OK pentru a închide setările și a vedea rezultatul"
+
+msgctxt "#32043"
+msgid "Report"
+msgstr "Raportează"
+
+msgctxt "#32044"
+msgid "Show a Report button under the skip prompt (needs API key)"
+msgstr "Afișează un buton Raportează sub promptul de salt (necesită cheie API)"
+
+msgctxt "#32045"
+msgid "Reporting"
+msgstr "Raportări"
+
+msgctxt "#32046"
+msgid "Hide the Report button under the skip prompt"
+msgstr "Ascunde butonul Raportează de sub promptul de salt"
+
+msgctxt "#32047"
+msgid "Appearance"
+msgstr "Aspect"
+
+msgctxt "#32048"
+msgid "Button style"
+msgstr "Stilul butonului"
+
+msgctxt "#32049"
+msgid "Classic"
+msgstr "Clasic"
+
+msgctxt "#32050"
+msgid "Glass"
+msgstr "Sticlă"
+
+msgctxt "#32051"
+msgid "Retry for late metadata (up to 30 seconds)"
+msgstr "Reîncearcă pentru metadate întârziate (până la 30 de secunde)"
