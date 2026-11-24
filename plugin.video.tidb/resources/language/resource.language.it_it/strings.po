@@ -174,3 +174,7 @@ msgstr "Classico"
 msgctxt "#32050"
 msgid "Glass"
 msgstr "Effetto vetro"
+
+msgctxt "#32051"
+msgid "Retry for late metadata (up to 30 seconds)"
+msgstr "Riprova per metadati in ritardo (fino a 30 secondi)"
