@@ -10,10 +10,12 @@
     <extension point="xbmc.addon.metadata">
         <path>plugin.video.tidb-2.2.1.zip</path>
         <summary lang="en_GB">Skip intro, recap, credits, and preview segments in movies and TV shows using TheIntroDB</summary>
+        <summary lang="it_IT">Salta sigla iniziale, riepilogo, titoli di coda e anteprime in film e serie TV usando TheIntroDB</summary>
         <summary lang="zh_CN">基于 TheIntroDB 数据库，自动跳过电影和电视剧的片头、前情回顾、片尾和预告片段</summary>
         <summary lang="ar_SA">تخطى المقدمة، والملخص، وتتر النهاية، ومعاينات الحلقات في الأفلام والمسلسلات باستخدام TheIntroDB</summary>
         <summary lang="fr_FR">Passer l'intro, le résumé, le générique et les aperçus des films et séries avec TheIntroDB</summary>
         <description lang="en_GB">Looks up segment timings from TheIntroDB while you watch. Uses TVDB ids first, then TMDB, then IMDb ids (tt…) with season/episode.</description>
+        <description lang="it_IT">Recupera gli orari dei segmenti da TheIntroDB durante la visione. Usa prima gli ID TVDB, poi TMDB, infine gli ID IMDb (tt…) con stagione ed episodio.</description>
         <description lang="zh_CN">观看时自动从 TheIntroDB 数据库查询片段时间信息。优先使用 TVDB ID 进行匹配，其次为 TMDB ID，最后为 IMDb ID（tt 开头）配合季/集号查询。</description>
         <description lang="ar_SA">يجلب أزمنة المقاطع من TheIntroDB أثناء المشاهدة. يستخدم معرّفات TVDB أولاً، ثم TMDB، ثم معرّفات IMDb (tt…) مع الموسم والحلقة.</description>
         <description lang="fr_FR">Récupère les horodatages des segments depuis TheIntroDB pendant la lecture. Utilise en priorité les identifiants TVDB, puis les identifiants TMDB, puis les identifiants IMDb (tt…) avec la saison et l'épisode.</description>

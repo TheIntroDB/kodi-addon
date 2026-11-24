@@ -1,0 +1,176 @@
+# Smart Intro Skip language file
+msgid ""
+msgstr ""
+"Project-Id-Version: plugin.video.tidb\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: 2024-01-01 00:00+0000\n"
+"Last-Translator: 01xKeven\n"
+"Language-Team: Italian\n"
+"Language: it\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgctxt "#32001"
+msgid "Skip Intro"
+msgstr "Salta sigla iniziale"
+
+msgctxt "#32003"
+msgid "Skip Recap"
+msgstr "Salta riepilogo"
+
+msgctxt "#32004"
+msgid "Skip Credits"
+msgstr "Salta titoli di coda"
+
+msgctxt "#32005"
+msgid "Skip Preview"
+msgstr "Salta anteprima"
+
+msgctxt "#32006"
+msgid "Enable intro skipping"
+msgstr "Abilita salto sigla iniziale"
+
+msgctxt "#32007"
+msgid "Enable recap skipping"
+msgstr "Abilita salto riepilogo"
+
+msgctxt "#32008"
+msgid "Enable credits skipping"
+msgstr "Abilita salto titoli di coda"
+
+msgctxt "#32009"
+msgid "Enable preview skipping"
+msgstr "Abilita salto anteprima"
+
+msgctxt "#32011"
+msgid "Extra seconds to skip past segment end"
+msgstr "Secondi aggiuntivi da saltare dopo la fine del segmento"
+
+msgctxt "#32012"
+msgid "Next Episode"
+msgstr "Episodio successivo"
+
+msgctxt "#32020"
+msgid "Mark Intro Start"
+msgstr "Segna inizio sigla"
+
+msgctxt "#32021"
+msgid "Mark Intro End"
+msgstr "Segna fine sigla"
+
+msgctxt "#32022"
+msgid "Submitted!"
+msgstr "Inviato!"
+
+msgctxt "#32023"
+msgid "Submission failed"
+msgstr "Invio non riuscito"
+
+msgctxt "#32024"
+msgid "Offer to submit intros on pause (needs API key)"
+msgstr "Proponi di inviare le sigle durante la pausa (richiede una chiave API)"
+
+msgctxt "#32025"
+msgid "General"
+msgstr "Generale"
+
+msgctxt "#32026"
+msgid "Segment Types"
+msgstr "Tipi di segmento"
+
+msgctxt "#32027"
+msgid "TheIntroDB"
+msgstr "TheIntroDB"
+
+msgctxt "#32028"
+msgid "Submissions"
+msgstr "Invii"
+
+msgctxt "#32029"
+msgid "Privacy"
+msgstr "Privacy"
+
+msgctxt "#32030"
+msgid "Debug"
+msgstr "Debug"
+
+msgctxt "#32031"
+msgid "Enable lookups"
+msgstr "Abilita le ricerche"
+
+msgctxt "#32032"
+msgid "Optional TheIntroDB API key"
+msgstr "Chiave API TheIntroDB facoltativa"
+
+msgctxt "#32033"
+msgid "Anonymous usage reporting"
+msgstr "Invio anonimo dei dati di utilizzo"
+
+msgctxt "#32034"
+msgid "Verbose logging (kodi.log)"
+msgstr "Registro dettagliato (kodi.log)"
+
+msgctxt "#32035"
+msgid "On-screen debug notifications"
+msgstr "Notifiche di debug sullo schermo"
+
+msgctxt "#32036"
+msgid "Auto-skip intro segments"
+msgstr "Salta automaticamente le sigle iniziali"
+
+msgctxt "#32037"
+msgid "Auto-skip recap segments"
+msgstr "Salta automaticamente i riepiloghi"
+
+msgctxt "#32038"
+msgid "Auto-skip credits segments"
+msgstr "Salta automaticamente i titoli di coda"
+
+msgctxt "#32039"
+msgid "Auto-skip preview segments"
+msgstr "Salta automaticamente le anteprime"
+
+msgctxt "#32040"
+msgid "Hide skip button after (seconds, 0 = keep until segment ends)"
+msgstr "Nascondi il pulsante Salta dopo (secondi, 0 = mantienilo fino alla fine del segmento)"
+
+msgctxt "#32041"
+msgid "Test API key"
+msgstr "Verifica chiave API"
+
+msgctxt "#32042"
+msgid "Enable, then press OK to close settings and see the result"
+msgstr "Abilita, quindi premi OK per chiudere le impostazioni e visualizzare il risultato"
+
+msgctxt "#32043"
+msgid "Report"
+msgstr "Segnala"
+
+msgctxt "#32044"
+msgid "Show a Report button under the skip prompt (needs API key)"
+msgstr "Mostra un pulsante Segnala sotto il messaggio di salto (richiede una chiave API)"
+
+msgctxt "#32045"
+msgid "Reporting"
+msgstr "Segnalazioni"
+
+msgctxt "#32046"
+msgid "Hide the Report button under the skip prompt"
+msgstr "Nascondi il pulsante Segnala sotto il messaggio di salto"
+
+msgctxt "#32047"
+msgid "Appearance"
+msgstr "Aspetto"
+
+msgctxt "#32048"
+msgid "Button style"
+msgstr "Stile del pulsante"
+
+msgctxt "#32049"
+msgid "Classic"
+msgstr "Classico"
+
+msgctxt "#32050"
+msgid "Glass"
+msgstr "Effetto vetro"
